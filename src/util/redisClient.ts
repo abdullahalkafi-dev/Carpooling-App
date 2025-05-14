@@ -1,11 +1,12 @@
 import { createClient, RedisClientType } from "redis";
-
+import config from "../config";
+console.log(`redis://${config.redis.host}${config.redis.port}`);
 class RedisClient {
   public client: RedisClientType;
 
   constructor() {
     this.client = createClient({
-      url: "redis://127.0.0.1:6379",
+      url: `redis://${config.redis.host}:${config.redis.port}`,
       // 'redis://redis:6379',
     });
     this.client.on("error", (err: Error) => {

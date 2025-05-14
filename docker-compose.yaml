@@ -1,15 +1,16 @@
 services:
-  redis:
+  redis-carpooling:
       image: redis:7
-      container_name: redis
+      container_name: redis-carpooling
       ports:
-        - "6379:6379"
+        - "6380:6379"
   carpooling-backend:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: carpooling-backend
     ports:
-      - "5004:5004"
+      - "5007:5004"
     env_file:
       - .env
     volumes:
@@ -17,9 +18,9 @@ services:
       - carpooling-logs:/app/winston
       - /app/node_modules
     depends_on:
-      - redis
+      - redis-carpooling
     command: pnpm run dev
-
+    
   
 
 volumes:
