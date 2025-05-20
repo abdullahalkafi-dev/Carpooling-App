@@ -2,19 +2,30 @@ import { Model, Types } from "mongoose";
 
 export type TCarpool = {
   role: "Attend"|"Drive";
-  user:Types.ObjectId;
-  childrens:Types.ObjectId[];
-  startLocation:string;
-  endLocation:string;
-  whenStatus:"Does not repeat"|"Daily"| "Every Week"| "Custom";
-  
+  user: Types.ObjectId;
+  eventName: string;
+  childrens: Types.ObjectId[];
+  startLocation: string;
+  totalSeats: number;
+  endLocation: string;
+  carpoolType: "Does not repeat"|"Daily"| "Every Week"| "Custom";
+  startDate?: Date;
+  startTime?: Date;
 
-
+  estimatedEndTime?: Date;
+  repeatUntil?: Date;
+  returnTrip?: {
+    returnStartDate?: Date;
+    returnStartTime?: Date;
+    returnEstimatedEndTime?: Date;
+  };
+  weeklyDays?: ("Monday"|"Tuesday"|"Wednesday"|"Thursday"|"Friday"|"Saturday"|"Sunday")[];
 };
+
 export type CarpoolModal = {
-  isExistCarpoolById(id: string): any;
-  isExistCarpoolByEmail(email: string): any;
-  isExistCarpoolByPhnNum(phnNum: string): any;
+  isExistCarpoolById(id: string): Promise<TCarpool | null>;
+  isExistCarpoolByEmail(email: string): Promise<TCarpool | null>;
+  isExistCarpoolByPhnNum(phnNum: string): Promise<TCarpool | null>;
   isMatchPassword(password: string, hashPassword: string): boolean;
   isJWTIssuedBeforePasswordChanged(
     passwordChangedTimestamp: Date,

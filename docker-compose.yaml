@@ -3,7 +3,7 @@ services:
       image: redis:7
       container_name: redis-carpooling
       ports:
-        - "6380:6379"
+        - "6381:6379"
   carpooling-backend:
     build:
       context: .
