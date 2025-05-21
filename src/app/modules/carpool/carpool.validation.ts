@@ -28,7 +28,7 @@ const createCarpool = z.object({
       estimatedEndTime: z.date().optional(),
       returnTrip: z
         .object({
-          returnStartDate: z.date().optional(),
+          returnDate: z.date().optional(),
           returnStartTime: z.date().optional(),
           returnEstimatedEndTime: z.date().optional(),
         })

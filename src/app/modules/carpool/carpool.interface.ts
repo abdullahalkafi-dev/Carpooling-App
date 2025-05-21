@@ -15,7 +15,7 @@ export type TCarpool = {
   estimatedEndTime?: Date;
   repeatUntil?: Date;
   returnTrip?: {
-    returnStartDate?: Date;
+    returnDate?: Date;
     returnStartTime?: Date;
     returnEstimatedEndTime?: Date;
   };
