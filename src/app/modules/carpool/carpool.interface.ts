@@ -11,7 +11,7 @@ export type TCarpool = {
   carpoolType: "Does not repeat"|"Daily"| "Every Week"| "Custom";
   startDate?: Date;
   startTime?: Date;
-
+  note?: string;
   estimatedEndTime?: Date;
   repeatUntil?: Date;
   returnTrip?: {

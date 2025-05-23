@@ -49,6 +49,10 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
         estimatedEndTime: {
             type: Date,
         },
+        note: {
+            type: String,
+            default: '',
+        },
         repeatUntil: {
             type: Date,
         },

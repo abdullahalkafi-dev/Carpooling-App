@@ -10,7 +10,7 @@ services:
       dockerfile: Dockerfile
     container_name: carpooling-backend
     ports:
-      - "5007:5004"
+      - "5007:5007"
     env_file:
       - .env
     volumes:
