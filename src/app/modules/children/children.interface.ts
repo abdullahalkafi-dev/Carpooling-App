@@ -14,6 +14,8 @@ export namespace TReturnChildren {
     page: number;
     limit: number;
     totalPage: number;
+
+    
     total: number;
   };
 

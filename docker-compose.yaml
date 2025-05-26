@@ -1,9 +1,9 @@
 services:
   redis-carpooling:
-      image: redis:7
-      container_name: redis-carpooling
-      ports:
-        - "6381:6379"
+    image: redis:7
+    container_name: redis-carpooling
+    ports:
+      - "6381:6379"
   carpooling-backend:
     build:
       context: .
@@ -20,9 +20,9 @@ services:
     depends_on:
       - redis-carpooling
     command: pnpm run dev
-    
-  
+    restart: unless-stopped
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
 volumes:
   carpooling-logs:
-    

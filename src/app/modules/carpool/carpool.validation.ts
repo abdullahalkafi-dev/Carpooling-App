@@ -9,8 +9,13 @@ const createCarpool = z.object({
           message: "Role must be either 'Attend' or 'Drive'",
         }),
       }),
-      user: z.string().uuid("Invalid user ID"),
-      childrens: z.array(z.string().uuid("Invalid child ID")).optional(),
+      eventName: z.string().min(3, "Event name is required").trim(),
+      totalSeats: z.number().min(1, "Total seats must be at least 1"),
+      note: z.string().optional(),
+      user: z.string({ message: "User ID is required" }),
+      childrens: z
+        .array(z.string({ message: "Min 1 children id is required" }))
+        .optional(),
       startLocation: z.string().min(3, "Start location is required").trim(),
       endLocation: z.string().min(3, "End location is required").trim(),
       carpoolType: z.enum(
@@ -23,14 +28,14 @@ const createCarpool = z.object({
         }
       ),
       // Conditional validation based on carpoolType
-      startDate: z.date().optional(),
-      startTime: z.date().optional(),
-      estimatedEndTime: z.date().optional(),
+      startDate: z.string().optional(),
+      startTime: z.string().optional(),
+      estimatedEndTime: z.string().optional(),
       returnTrip: z
         .object({
-          returnDate: z.date().optional(),
-          returnStartTime: z.date().optional(),
-          returnEstimatedEndTime: z.date().optional(),
+          returnDate: z.string().optional(),
+          returnStartTime: z.string().optional(),
+          returnEstimatedEndTime: z.string().optional(),
         })
         .optional(),
       weeklyDays: z
@@ -81,6 +86,60 @@ const createCarpool = z.object({
     ),
 });
 
+// Define the validation schema for updating carpool
+const updateCarpool = z.object({
+  body: z
+    .object({
+      role: z.enum(["Attend", "Drive"], {
+        errorMap: () => ({
+          message: "Role must be either 'Attend' or 'Drive'",
+        }),
+      }).optional(),
+      eventName: z.string().min(3, "Event name is required").trim().optional(),
+      totalSeats: z.number().min(1, "Total seats must be at least 1").optional(),
+      note: z.string().optional(),
+      childrens: z
+        .array(z.string({ message: "Min 1 children id is required" }))
+        .optional(),
+      startLocation: z.string().min(3, "Start location is required").trim().optional(),
+      endLocation: z.string().min(3, "End location is required").trim().optional(),
+      carpoolType: z.enum(
+        ["Does not repeat", "Daily", "Every Week", "Custom"],
+        {
+          errorMap: () => ({
+            message:
+              "Carpool type must be one of ['Does not repeat', 'Daily', 'Every Week', 'Custom']",
+          }),
+        }
+      ).optional(),
+      startDate: z.string().optional(),
+      startTime: z.string().optional(),
+      estimatedEndTime: z.string().optional(),
+      returnTrip: z
+        .object({
+          returnDate: z.string().optional(),
+          returnStartTime: z.string().optional(),
+          returnEstimatedEndTime: z.string().optional(),
+        })
+        .optional(),
+      weeklyDays: z
+        .array(
+          z.enum([
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+          ])
+        )
+        .optional(),
+    })
+    .strict(),
+});
+
 export const CarpoolValidation = {
   createCarpool,
+  updateCarpool,
 };

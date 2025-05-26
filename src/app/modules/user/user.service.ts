@@ -6,6 +6,16 @@ import { TReturnUser, TUser } from "./user.interface";
 import { User } from "./user.model";
 
 const createUser = async (user: TUser): Promise<Partial<TUser>> => {
+  const existingUser = await User.findOne({ email: user.email });
+  if (existingUser?.verified === false) {
+    //delete the existing user
+    await User.findByIdAndDelete(existingUser._id);
+  }
+  // Check if the user already exists
+  if (existingUser && existingUser.verified) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "User already exists");
+  }
+
   const newUser = await User.create(user);
   await UserCacheManage.updateUserCache(newUser._id.toString());
   return newUser;
@@ -22,10 +32,12 @@ const getAllUsers = async (
     .sort()
     .paginate()
     .fields();
+
   const result = await userQuery.modelQuery;
-  console.log(result);
   const meta = await userQuery.countTotal();
+
   await UserCacheManage.setCacheListWithQuery(query, { result, meta });
+
   return { result, meta };
 };
 const getUserById = async (

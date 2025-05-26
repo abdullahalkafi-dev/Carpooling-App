@@ -26,7 +26,7 @@ const createUser = z.object({
 });
 
 const updateUser = z.object({
-  body: z
+  data: z
     .object({
       firstName: z
         .string()

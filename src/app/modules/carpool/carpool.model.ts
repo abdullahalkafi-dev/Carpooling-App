@@ -108,4 +108,4 @@ carpoolSchema.statics.isJWTIssuedBeforePasswordChanged = function (
     return passwordChangedTime > jwtIssuedTimestamp;
 };
 
-export const Carpool = model<TCarpool, CarpoolModal>('Carpool', carpoolSchema);
+export const Carpool = model<TCarpool, CarpoolModal>('Carpool', carpoolSchema);-

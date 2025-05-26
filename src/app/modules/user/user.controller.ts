@@ -6,6 +6,7 @@ import sendResponse from "../../../shared/sendResponse";
 
 const createUser = catchAsync(async (req: Request, res: Response) => {
   console.log(req.body);
+
   const user = await UserServices.createUser(req.body);
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,
@@ -36,7 +37,9 @@ const getUserById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const updateUser = catchAsync(async (req: Request, res: Response) => {
-  const user = await UserServices.updateUser(req.params.id, req.body);
+  const data = req.body.data ? JSON.parse(req.body.data) : null;
+
+  const user = await UserServices.updateUser(req.params.id, data);
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
