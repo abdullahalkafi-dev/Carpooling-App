@@ -61,11 +61,10 @@ process.on("SIGTERM", async () => {
   logger.info("SIGTERM received, shutting down gracefully...");
   if (server) {
     server.close(() => {
-      logger.info('HTTP server closed.');
+      logger.info("HTTP server closed.");
       // Close DB or Redis here if needed
       process.exit(0);
     });
-    
-
   }
 });
+
