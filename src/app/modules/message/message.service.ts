@@ -25,8 +25,8 @@ const getAllMessage = async (query: Record<string, any>) => {
           { sender: receiver, receiver: sender }
         ]
       })
-        .populate("sender")
-        .populate("receiver"),
+        .populate("sender", "firstName lastName image")
+        .populate("receiver", "firstName lastName image"),
       query
     )
       .search(["message"])

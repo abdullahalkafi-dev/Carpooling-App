@@ -13,8 +13,8 @@ const createCarpool = z.object({
       totalSeats: z.number().min(1, "Total seats must be at least 1"),
       note: z.string().optional(),
       user: z.string({ message: "User ID is required" }),
-      childrens: z
-        .array(z.string({ message: "Min 1 children id is required" }))
+      dependents: z
+        .array(z.string({ message: "Min 1 dependents id is required" }))
         .optional(),
       startLocation: z.string().min(3, "Start location is required").trim(),
       endLocation: z.string().min(3, "End location is required").trim(),
@@ -98,8 +98,8 @@ const updateCarpool = z.object({
       eventName: z.string().min(3, "Event name is required").trim().optional(),
       totalSeats: z.number().min(1, "Total seats must be at least 1").optional(),
       note: z.string().optional(),
-      childrens: z
-        .array(z.string({ message: "Min 1 children id is required" }))
+      dependents: z
+        .array(z.string({ message: "Min 1 dependents id is required" }))
         .optional(),
       startLocation: z.string().min(3, "Start location is required").trim().optional(),
       endLocation: z.string().min(3, "End location is required").trim().optional(),

@@ -18,9 +18,9 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
             type: String,
             required: true,
         },
-        childrens: {
+        dependents: {
             type: [Schema.Types.ObjectId],
-            ref: 'Children',
+            ref: 'Dependents',
             default: [],
         },
         startLocation: {

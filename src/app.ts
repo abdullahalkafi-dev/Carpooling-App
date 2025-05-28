@@ -4,9 +4,12 @@ import { StatusCodes } from "http-status-codes";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import router from "./routes";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
 import { Morgan } from "./shared/morgen";
+import compression from "compression";
+import rateLimit from "express-rate-limit";
 // import admin from 'firebase-admin';
-// import ServiceAccount from '../medmeet-admin.json';
+// import ServiceAccount from '../carpool-admin.json';
 const app: express.Application = express();
 
 //morgan
@@ -23,8 +26,20 @@ app.use(
   })
 );
 app.use(express.json());
-
+app.use(compression());
 app.use(cookieParser());
+app.use(helmet());
+
+app.use(compression());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per window
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 
 //file retrieve
 app.use(express.static("uploads"));

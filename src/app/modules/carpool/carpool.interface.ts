@@ -4,7 +4,7 @@ export type TCarpool = {
   role: "Attend"|"Drive";
   user: Types.ObjectId;
   eventName: string;
-  childrens: Types.ObjectId[];
+  dependents: Types.ObjectId[];
   startLocation: string;
   totalSeats: number;
   endLocation: string;

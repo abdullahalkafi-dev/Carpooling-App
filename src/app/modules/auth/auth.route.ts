@@ -37,4 +37,5 @@ router.post(
   validateRequest(AuthValidation.createChangePassword),
   AuthController.changePassword
 );
+router.post("/send-otp", AuthController.resendOtp);
 export const AuthRoutes: Router = router;

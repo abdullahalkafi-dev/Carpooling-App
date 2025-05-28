@@ -8,7 +8,7 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
     totalSeats,
     endLocation,
     carpoolType,
-    childrens,
+    dependents,
     estimatedEndTime,
     repeatUntil,
     returnTrip,
@@ -17,14 +17,14 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
     user,
     weeklyDays,
   } = payload;
-  if(payload.childrens && payload?.childrens.length < 1){
-    throw new Error("Childrens is required");
+  if(payload.dependents && payload?.dependents.length < 1){
+    throw new Error("Dependents is required");
   }
   if(totalSeats && totalSeats < 1){
     throw new Error("Total seats must be greater than 0");
     }
-    if(payload.childrens && payload?.childrens.length > totalSeats! ){
-        throw new Error("Total seats must be greater than or equal to childrens");
+    if(payload.dependents && payload?.dependents.length > totalSeats! ){
+        throw new Error("Total seats must be greater than or equal to dependents");
     }
 
   if (carpoolType === "Does not repeat") {

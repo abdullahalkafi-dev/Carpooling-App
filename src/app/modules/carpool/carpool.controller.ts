@@ -3,7 +3,6 @@ import { carpoolService } from "./carpool.service";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { StatusCodes } from "http-status-codes";
-import pick from "../../../shared/pick";
 
 // Create a new carpool
 const createCarpool = catchAsync(async (req: Request, res: Response) => {
