@@ -1,9 +1,8 @@
 import { Model, Types } from "mongoose";
 
 export type TLocation = {
-  address: string;
-  latitude: number;
-  longitude: number;
+  title: string;
+  coordinates: [number, number]; // [longitude, latitude]
 };
 
 export type TCarpool = {
@@ -14,7 +13,6 @@ export type TCarpool = {
   carpoolType: "Does not repeat" | "Daily" | "Every Week" | "Custom";
   startDate?: Date;
   startTime?: Date;
-  note?: string;
   driver?: Types.ObjectId;
   passengers?: Types.ObjectId[];
   estimatedEndTime?: Date;
@@ -24,10 +22,7 @@ export type TCarpool = {
     returnStartTime?: Date;
     returnEstimatedEndTime?: Date;
   };
-  driverLocation?: {
-    latitude: number;
-    longitude: number;
-  };
+  driverLocation?: Types.ObjectId;
   weeklyDays?: (
     | "Monday"
     | "Tuesday"

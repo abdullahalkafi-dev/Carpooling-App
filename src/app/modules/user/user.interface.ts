@@ -1,4 +1,4 @@
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
 export type TUser = {
   firstName: string;
@@ -11,11 +11,7 @@ export type TUser = {
   status: "active" | "delete";
   verified?: boolean;
   fcmToken?: string;
-  address: {
-    address: string;
-    latitude: number;
-    longitude: number;
-  }[];
+  address: Types.ObjectId[];
   authentication?: {
     isResetPassword: boolean;
     oneTimeCode: string;
