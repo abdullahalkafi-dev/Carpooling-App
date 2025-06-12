@@ -4,12 +4,8 @@ import { CarpoolModal, TCarpool } from './carpool.interface';
 
 const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
     {
-        role: {
-            type: String,
-            enum: ['Attend', 'Drive'],
-            required: true,
-        },
-        user: {
+        
+        createdBy: {
             type: Schema.Types.ObjectId,
             ref: 'User',
             required: true,
@@ -18,7 +14,7 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
             type: String,
             required: true,
         },
-        dependents: {
+        passengers: {
             type: [Schema.Types.ObjectId],
             ref: 'Dependents',
             default: [],
@@ -27,10 +23,7 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
             type: String,
             required: true,
         },
-        totalSeats: {
-            type: Number,
-            required: true,
-        },
+    
         endLocation: {
             type: String,
             required: true,
@@ -40,6 +33,11 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
             enum: ['Does not repeat', 'Daily', 'Every Week', 'Custom'],
             required: true,
         },
+        driver: {
+            type: Schema.Types.ObjectId,
+            required: true,
+        },
+
         startDate: {
             type: Date,
         },

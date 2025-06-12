@@ -22,7 +22,7 @@ const getAllCarpools = async (
   if (cached) return cached;
 
   const carpoolQuery = new QueryBuilder(Carpool.find(), query)
-    .search(["eventName", "startLocation", "endLocation"])
+    .search(["eventName"])
     .filter()
     .sort()
     .paginate()
@@ -61,12 +61,13 @@ const getCarpoolsByUser = async (
   if (!Types.ObjectId.isValid(userId)) {
     throw new AppError(StatusCodes.BAD_REQUEST, "Invalid user ID format");
   }
+   
 
   // Add userId to the query
-  const updatedQuery = { ...query, user: userId };
+  const updatedQuery = { ...query, createdBy: userId };
 
   const carpoolQuery = new QueryBuilder(Carpool.find(), updatedQuery)
-    .search(["eventName", "startLocation", "endLocation"])
+    .search(["eventName"])
     .filter()
     .sort()
     .paginate()

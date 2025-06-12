@@ -7,16 +7,16 @@ import { Dependents } from "./dependents.model";
 import { User } from "../user/user.model";
 import unlinkFile from "../../../shared/unlinkFile";
 
-const createDependent = async (cependent: TDependent): Promise<Partial<TDependent>> => {
+const createDependent = async (dependent: TDependent): Promise<Partial<TDependent>> => {
   //check if parent is exists
-  const isParentExists = await User.findById(cependent.parentId);
+  const isParentExists = await User.findById(dependent.parentId);
   if (!isParentExists) {
     throw new AppError(StatusCodes.NOT_FOUND, "Parent not found");
   }
-  const newDependent = await Dependents.create(cependent);
+  const newDependent = await Dependents.create(dependent);
   await DependentCacheManage.updateDependentCache(
     newDependent._id.toString(),
-    cependent.parentId.toString()
+    dependent.parentId.toString()
   );
   return newDependent;
 };

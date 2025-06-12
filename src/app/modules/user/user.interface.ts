@@ -12,12 +12,9 @@ export type TUser = {
   verified?: boolean;
   fcmToken?: string;
   address: {
-    title: string;
-    street: string;
-    apartmentNumber: string;
-    city: string;
-    state: string;
-    postalCode: string;
+    address: string;
+    latitude: number;
+    longitude: number;
   }[];
   authentication?: {
     isResetPassword: boolean;
@@ -50,11 +47,11 @@ export namespace TReturnUser {
     meta?: Meta;
   };
 
-  export type getSingleUser = TUser
-  export type updateUser = TUser
-  export type updateUserActivationStatus = TUser
+  export type getSingleUser = TUser;
+  export type updateUser = TUser;
+  export type updateUserActivationStatus = TUser;
 
-  export type updateUserRole =TUser
+  export type updateUserRole = TUser;
 
-  export type deleteUser =TUser
+  export type deleteUser = TUser;
 }

@@ -7,7 +7,7 @@ export type TCarpoolInvitation = {
   status: "pending" | "accepted" | "declined";
   message?: string;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt: Date;  
 };
 
 export type CarpoolInvitationModal = {

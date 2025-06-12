@@ -5,21 +5,21 @@ import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 
 const createDependent = catchAsync(async (req: Request, res: Response) => {
-  const dependentData = JSON.parse(req.body.data);
- let image = null;
- if (req.files && "image" in req.files && req.files.image[0]) {
-  image = `/images/${req.files.image[0].filename}`;
-}
-  const cependentData = {
-    ...dependentData,
+  const dependentJson = JSON.parse(req.body.data);
+  let image = null;
+  if (req.files && "image" in req.files && req.files.image[0]) {
+    image = `/images/${req.files.image[0].filename}`;
+  }
+  const dependentData = {
+    ...dependentJson,
     image: image,
   };
-  const cependent = await DependentServices.createDependent(cependentData);
+  const dependent = await DependentServices.createDependent(dependentData);
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,
     success: true,
     message: "Dependent created successfully",
-    data: cependent,
+    data: dependent,
   });
 });
 
@@ -35,49 +35,52 @@ const getAllDependents = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getDependentById = catchAsync(async (req: Request, res: Response) => {
-  const cependent = await DependentServices.getDependentById(req.params.id);
+  const dependent = await DependentServices.getDependentById(req.params.id);
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
     message: "Dependent retrieved successfully",
-    data: cependent,
+    data: dependent,
   });
 });
 
-const getDependentByParentId = catchAsync(async (req: Request, res: Response) => {
-  const dependents = await DependentServices.getDependentByParentId(req.params.parentId);
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "Dependents retrieved successfully",
-    data: dependents,
-  });
-});
+const getDependentByParentId = catchAsync(
+  async (req: Request, res: Response) => {
+    const dependents = await DependentServices.getDependentByParentId(
+      req.params.parentId
+    );
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "Dependents retrieved successfully",
+      data: dependents,
+    });
+  }
+);
 
 const updateDependent = catchAsync(async (req: Request, res: Response) => {
-
-  const dependentData = JSON.parse(req.body.data);
- let image = null;
- if (req.files && "image" in req.files && req.files.image[0]) {
-  image = `/images/${req.files.image[0].filename}`;
-}
-  const cependentData = {
-    ...dependentData,
+  const dependentJson = JSON.parse(req.body.data);
+  let image = null;
+  if (req.files && "image" in req.files && req.files.image[0]) {
+    image = `/images/${req.files.image[0].filename}`;
+  }
+  const dependentData = {
+    ...dependentJson,
     image: image,
   };
-  if (cependentData.image === null) {
-    delete cependentData.image;
+  if (dependentData.image === null) {
+    delete dependentData.image;
   }
 
-
-
-
-  const cependent = await DependentServices.updateDependent(req.params.id,cependentData);
+  const dependent = await DependentServices.updateDependent(
+    req.params.id,
+    dependentData
+  );
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
     message: "Dependent updated successfully",
-    data: cependent,
+    data: dependent,
   });
 });
 

@@ -1,17 +1,22 @@
 import { Model, Types } from "mongoose";
 
+export type TLocation ={
+  address: string;
+  latitude: number;
+  longitude: number;
+}
+
 export type TCarpool = {
-  role: "Attend"|"Drive";
-  user: Types.ObjectId;
+  createdBy: Types.ObjectId;
   eventName: string;
-  dependents: Types.ObjectId[];
-  startLocation: string;
-  totalSeats: number;
-  endLocation: string;
+  startLocation: TLocation;
+  endLocation: TLocation;
   carpoolType: "Does not repeat"|"Daily"| "Every Week"| "Custom";
   startDate?: Date;
   startTime?: Date;
   note?: string;
+  driver?:  Types.ObjectId;
+  passengers?: Types.ObjectId[];
   estimatedEndTime?: Date;
   repeatUntil?: Date;
   returnTrip?: {
