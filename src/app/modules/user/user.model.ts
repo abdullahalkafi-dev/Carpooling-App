@@ -56,28 +56,17 @@ const userSchema = new Schema<TUser, UserModal>(
     address: {
       type: [
         {
-          title: {
+          address: {
             type: String,
             required: true,
+            trim: true,
           },
-          street: {
-            type: String,
+          latitude: {
+            type: Number,
             required: true,
           },
-          apartmentNumber: {
-            type: String,
-            required: true,
-          },
-          city: {
-            type: String,
-            required: true,
-          },
-          state: {
-            type: String,
-            required: true,
-          },
-          postalCode: {
-            type: String,
+          longitude: {
+            type: Number,
             required: true,
           },
         },

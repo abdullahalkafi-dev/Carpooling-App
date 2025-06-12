@@ -14,8 +14,6 @@ export namespace TReturnDependent {
     page: number;
     limit: number;
     totalPage: number;
-
-    
     total: number;
   };
 

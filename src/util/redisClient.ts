@@ -1,6 +1,6 @@
 import { createClient, RedisClientType } from "redis";
 import config from "../config";
-console.log(`redis://${config.redis.host}${config.redis.port}`);
+console.log(`redis://${config.redis.host}:${config.redis.port}`);
 class RedisClient {
   public client: RedisClientType;
 

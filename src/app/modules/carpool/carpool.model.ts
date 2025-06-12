@@ -65,6 +65,21 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
                 type: Date,
             },
         },
+        driverLocation: {
+            latitude: {
+                type: Number,
+                required: function() {
+                    return this.driverLocation != null;
+                }
+            },
+            longitude: {
+                type: Number,
+                required: function() {
+                    return this.driverLocation != null;
+                }
+            },
+            
+        },
         weeklyDays: {
             type: [String],
             enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
