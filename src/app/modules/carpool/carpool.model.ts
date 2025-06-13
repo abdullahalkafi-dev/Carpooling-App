@@ -13,7 +13,12 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
       type: String,
       required: true,
     },
-    passengers: {
+    members: {
+      type: [Schema.Types.ObjectId],
+      ref: "User",
+      default: [],
+    },
+    childrens: {
       type: [Schema.Types.ObjectId],
       ref: "Dependents",
       default: [],
@@ -24,7 +29,8 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
         required: true,
       },
       coordinates: {
-        type: [Number],
+        type: [Number], 
+      
         validate: {
           validator: (coords: number[]) => {
             return (

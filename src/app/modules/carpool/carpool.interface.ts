@@ -14,7 +14,8 @@ export type TCarpool = {
   startDate?: Date;
   startTime?: Date;
   driver?: Types.ObjectId;
-  passengers?: Types.ObjectId[];
+  members?: Types.ObjectId[];
+  childrens?: Types.ObjectId[];
   estimatedEndTime?: Date;
   repeatUntil?: Date;
   returnTrip?: {

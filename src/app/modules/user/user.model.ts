@@ -55,7 +55,7 @@ const userSchema = new Schema<TUser, UserModal>(
     },
     address: {
       type: [Schema.Types.ObjectId],
-      ref:"addresses",
+      ref: "Address",
       default: [],
     },
     phoneNumber: {

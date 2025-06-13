@@ -3,24 +3,34 @@ import { StatusCodes } from "http-status-codes";
 import { DependentServices } from "./dependents.service";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
+import { unlinkSync } from "fs";
+import AppError from "../../errors/AppError";
 
 const createDependent = catchAsync(async (req: Request, res: Response) => {
-  const dependentJson = JSON.parse(req.body.data);
   let image = null;
-  if (req.files && "image" in req.files && req.files.image[0]) {
-    image = `/images/${req.files.image[0].filename}`;
+  try {
+    const dependentJson = JSON.parse(req.body.data);
+    image = null;
+    if (req.files && "image" in req.files && req.files.image[0]) {
+      image = `/images/${req.files.image[0].filename}`;
+    }
+    const dependentData = {
+      ...dependentJson,
+      image: image,
+    };
+    const dependent = await DependentServices.createDependent(dependentData);
+    sendResponse(res, {
+      statusCode: StatusCodes.CREATED,
+      success: true,
+      message: "Dependent created successfully",
+      data: dependent,
+    });
+  } catch (e) {
+
+    image && unlinkSync(`uploads/${image}`); // Delete the image i f an error occurs
+    throw new AppError((e as any).statusCode || StatusCodes.INTERNAL_SERVER_ERROR,(e as any).message || "Failed to create dependent");
+    // throw new AppError(e.status, e.message);
   }
-  const dependentData = {
-    ...dependentJson,
-    image: image,
-  };
-  const dependent = await DependentServices.createDependent(dependentData);
-  sendResponse(res, {
-    statusCode: StatusCodes.CREATED,
-    success: true,
-    message: "Dependent created successfully",
-    data: dependent,
-  });
 });
 
 const getAllDependents = catchAsync(async (req: Request, res: Response) => {
