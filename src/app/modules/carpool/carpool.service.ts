@@ -44,7 +44,16 @@ const getCarpoolById = async (id: string): Promise<TCarpool | null> => {
   if (!Types.ObjectId.isValid(id)) {
     throw new AppError(StatusCodes.BAD_REQUEST, "Invalid ID format");
   }
-  const result = await Carpool.findById(id);
+  const result = await Carpool.findById(id).populate([
+      {
+        path: "members",
+        select: "firstName lastName image",
+      },
+      {
+        path: "childrens",
+        select: "firstName lastName image tag parentId",
+      },
+    ]);
   if (!result) {
     throw new AppError(StatusCodes.NOT_FOUND, "Carpool not found");
   }
@@ -61,12 +70,22 @@ const getCarpoolsByUser = async (
   if (!Types.ObjectId.isValid(userId)) {
     throw new AppError(StatusCodes.BAD_REQUEST, "Invalid user ID format");
   }
-   
 
   // Add userId to the query
   const updatedQuery = { ...query, createdBy: userId };
-
-  const carpoolQuery = new QueryBuilder(Carpool.find(), updatedQuery)
+  const carpoolQuery = new QueryBuilder(
+    Carpool.find().populate([
+      {
+        path: "members",
+        select: "firstName lastName image",
+      },
+      {
+        path: "childrens",
+        select: "firstName lastName image tag parentId",
+      },
+    ]),
+    updatedQuery
+  )
     .search(["eventName"])
     .filter()
     .sort()

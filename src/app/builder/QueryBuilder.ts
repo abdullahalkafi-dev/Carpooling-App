@@ -60,7 +60,7 @@ export class QueryBuilder<T> {
     this.modelQuery = this.modelQuery.select(fields);
     return this;
   }
-  filter() {
+  filter(regexSafeFields: string[] = []) {
     const queryObj = { ...this.query };
     const excludeFields = ["searchTerm", "page", "limit", "sortBy", "fields"];
 
@@ -87,11 +87,12 @@ export class QueryBuilder<T> {
     }
 
     excludeFields.forEach((e) => delete queryObj[e]);
-    Object.keys(queryObj).forEach((key) => {
-      if (typeof queryObj[key] === "string") {
-        queryObj[key] = { $regex: queryObj[key], $options: "i" };
-      }
-    });
+   Object.keys(queryObj).forEach((key) => {
+    const value = queryObj[key];
+    if (typeof value === "string" && regexSafeFields.includes(key)) {
+      queryObj[key] = { $regex: value, $options: "i" };
+    }
+  });
     this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
     return this;
   }

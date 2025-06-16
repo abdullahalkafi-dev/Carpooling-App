@@ -3,7 +3,7 @@ import { QueryBuilder } from "../../builder/QueryBuilder";
 import AppError from "../../errors/AppError";
 import { TCarpoolInvitation, TReturnCarpoolInvitation } from "./carpoolInvitation.interface";
 import { CarpoolInvitation } from "./carpoolInvitation.model";
-import { Carpool } from "./carpool.model";
+import { Carpool } from "../carpool/carpool.model";
 import { Contact } from "../contact/contact.model";
 import { User } from "../user/user.model";
 
@@ -11,24 +11,25 @@ const inviteToCarpool = async (
   inviterId: string,
   carpoolId: string,
   inviteeIds: string[],
+  invitationType: "member" | "driver" = "member",
   message?: string
 ): Promise<TCarpoolInvitation[]> => {
-  // Check if carpool exists and inviter is the owner
+  // Check if carpool exists and inviter is the creator
   const carpool = await Carpool.findById(carpoolId);
   if (!carpool) {
     throw new AppError(StatusCodes.NOT_FOUND, "Carpool not found");
   }
 
-  if (carpool.user.toString() !== inviterId) {
+  if (carpool.createdBy.toString() !== inviterId) {
     throw new AppError(
       StatusCodes.FORBIDDEN,
       "You can only send invitations for your own carpools"
     );
   }
 
-  // Check if carpool has available seats
-  if (carpool.role === "Drive" && carpool.totalSeats <= 0) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "No available seats in this carpool");
+  // Check if trying to invite as driver when driver already exists
+  if (invitationType === "driver" && carpool.driver) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "This carpool already has a driver");
   }
 
   const createdInvitations: TCarpoolInvitation[] = [];
@@ -61,12 +62,22 @@ const inviteToCarpool = async (
         continue;
       }
 
+      // Check if user is already a member or driver
+      const isAlreadyMember = carpool.members?.some(memberId => memberId.toString() === inviteeId);
+      const isAlreadyDriver = carpool.driver?.toString() === inviteeId;
+      
+      if (isAlreadyMember || isAlreadyDriver) {
+        errors.push(`${invitee.firstName} ${invitee.lastName} is already part of this carpool`);
+        continue;
+      }
+
       // Create invitation
       const invitation = await CarpoolInvitation.create({
         carpool: carpoolId,
         inviter: inviterId,
         invitee: inviteeId,
         message: message,
+        invitationType: invitationType,
         status: "pending",
       });
 
@@ -114,23 +125,31 @@ const respondToInvitation = async (
     );
   }
 
-  // If accepting, check if carpool still has available seats
+  // If accepting, add user to carpool
   if (status === "accepted") {
     const carpool = await Carpool.findById(invitation.carpool);
     if (!carpool) {
       throw new AppError(StatusCodes.NOT_FOUND, "Carpool no longer exists");
     }
 
-    // For drive carpools, check seat availability
-    if (carpool.role === "Drive" && carpool.totalSeats <= 0) {
-      throw new AppError(StatusCodes.BAD_REQUEST, "No available seats left in this carpool");
+    // Add user to carpool based on invitation type
+    if (invitation.invitationType === "driver") {
+      // Check if carpool already has a driver
+      if (carpool.driver) {
+        throw new AppError(StatusCodes.BAD_REQUEST, "This carpool already has a driver");
+      }
+      carpool.driver = invitation.invitee;
+    } else {
+      // Add as member
+      if (!carpool.members) {
+        carpool.members = [];
+      }
+      if (!carpool.members.includes(invitation.invitee)) {
+        carpool.members.push(invitation.invitee);
+      }
     }
 
-    // Decrease available seats for drive carpools
-    if (carpool.role === "Drive") {
-      carpool.totalSeats -= 1;
-      await carpool.save();
-    }
+    await carpool.save();
   }
 
   // Update invitation status
@@ -151,7 +170,7 @@ const getMyInvitations = async (
     {
       path: "carpool",
       populate: {
-        path: "user",
+        path: "createdBy",
         select: "firstName lastName email image"
       }
     },
@@ -214,7 +233,7 @@ const getInvitationsForCarpool = async (
     throw new AppError(StatusCodes.NOT_FOUND, "Carpool not found");
   }
 
-  if (carpool.user.toString() !== userId) {
+  if (carpool.createdBy.toString() !== userId) {
     throw new AppError(
       StatusCodes.FORBIDDEN,
       "You can only view invitations for your own carpools"

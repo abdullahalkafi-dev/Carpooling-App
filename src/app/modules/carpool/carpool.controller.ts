@@ -44,6 +44,8 @@ const getCarpoolById = catchAsync(async (req: Request, res: Response) => {
 // Get all carpools by user ID
 const getCarpoolsByUser = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.params;
+    console.log(userId);
+
   const result = await carpoolService.getCarpoolsByUser(userId, req.query);
   
   sendResponse(res, {

@@ -5,13 +5,14 @@ import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 
 const inviteToCarpool = catchAsync(async (req: Request, res: Response) => {
-  const { carpoolId, inviteeIds, message } = req.body;
+  const { carpoolId, inviteeIds, invitationType = "member", message } = req.body;
   const inviterId = req.user.id;
 
   const invitations = await CarpoolInvitationServices.inviteToCarpool(
     inviterId,
     carpoolId,
     inviteeIds,
+    invitationType,
     message
   );
 

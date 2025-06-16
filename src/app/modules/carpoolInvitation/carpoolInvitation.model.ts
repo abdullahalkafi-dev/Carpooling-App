@@ -27,6 +27,12 @@ const carpoolInvitationSchema = new Schema<TCarpoolInvitation, CarpoolInvitation
       type: String,
       maxlength: 500,
     },
+    invitationType: {
+      type: String,
+      enum: ["member", "driver"],
+      default: "member",
+      required: true,
+    },
   },
   {
     timestamps: true,
@@ -42,6 +48,7 @@ carpoolInvitationSchema.index({ status: 1 });
 carpoolInvitationSchema.index({ inviter: 1, status: 1 });
 carpoolInvitationSchema.index({ invitee: 1, status: 1 });
 carpoolInvitationSchema.index({ carpool: 1, status: 1 });
+carpoolInvitationSchema.index({ invitationType: 1 });
 
 // Static methods
 carpoolInvitationSchema.statics.isInvitationExists = async function(
@@ -64,12 +71,26 @@ carpoolInvitationSchema.statics.getPendingInvitationsForUser = async function(
     {
       path: "carpool",
       populate: {
-        path: "user",
+        path: "createdBy",
         select: "firstName lastName email image"
       }
     },
     {
       path: "inviter",
+      select: "firstName lastName email image"
+    }
+  ]);
+};
+
+carpoolInvitationSchema.statics.getAcceptedInvitationsForCarpool = async function(
+  carpoolId: string
+): Promise<TCarpoolInvitation[]> {
+  return await this.find({
+    carpool: carpoolId,
+    status: "accepted"
+  }).populate([
+    {
+      path: "invitee",
       select: "firstName lastName email image"
     }
   ]);

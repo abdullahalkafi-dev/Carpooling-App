@@ -10,7 +10,7 @@ const router = express.Router();
 // Send friend request
 router.post(
   "/send-request",
-  auth(USER_ROLES.USER,USER_ROLES.ADMIN),
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
   validateRequest(ContactValidation.sendContactRequest),
   ContactController.sendContactRequest
 );

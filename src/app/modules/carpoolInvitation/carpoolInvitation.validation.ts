@@ -17,6 +17,11 @@ const inviteToCarpool = z.object({
         .min(1, "At least one invitee is required")
         .max(10, "Cannot invite more than 10 people at once"),
       message: z.string().max(500, "Message cannot exceed 500 characters").optional(),
+      invitationType: z.enum(["member", "driver"], {
+        errorMap: () => ({
+          message: "Invitation type must be either 'member' or 'driver'",
+        }),
+      }).default("member"),
     })
     .strict(),
 });

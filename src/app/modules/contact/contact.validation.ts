@@ -47,6 +47,7 @@ const blockUnblockContact = z.object({
   }),
 });
 
+
 export const ContactValidation = {
   sendContactRequest,
   respondToContactRequest,

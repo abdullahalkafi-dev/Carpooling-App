@@ -33,6 +33,7 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
       
         validate: {
           validator: (coords: number[]) => {
+            console.log("Validating coordinates:", coords);
             return (
               coords.length === 2 &&
               coords[0] >= -180 &&
@@ -108,8 +109,10 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
     },
     driverLocation: {
       type: [Number],
+      required: false,
       validate: {
-        validator: (coords: number[]) => {
+        validator: function(coords: number[]) {
+          if (!coords || coords.length === 0) return true; // Allow null/empty
           return (
             coords.length === 2 &&
             coords[0] >= -180 &&
@@ -120,7 +123,7 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
         },
         message: "Coordinates must be [longitude, latitude] with valid ranges",
       },
-      default: [],
+      default: null,
     },
     weeklyDays: {
       type: [String],

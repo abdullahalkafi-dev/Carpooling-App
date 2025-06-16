@@ -111,13 +111,13 @@ const getContactsByUser = async (
   }).populate([
     {
       path: "requester",
-      select: "firstName lastName email image",
+      select: " firstName  lastName email image",
     },
     {
       path: "recipient",
-      select: "firstName lastName email image",
+      select: " firstName  lastName email image",
     },
-  ]);
+  ]).lean();
 
   const queryBuilder = new QueryBuilder(contactQuery, query)
     .filter()
@@ -125,8 +125,12 @@ const getContactsByUser = async (
     .paginate()
     .fields();
 
+    
+
   const result = await queryBuilder.modelQuery;
+  console.time("getContactsByUser");
   const meta = await queryBuilder.countTotal();
+  console.timeEnd("getContactsByUser");
 
   return { result, meta };
 };
@@ -152,9 +156,12 @@ const getPendingRequests = async (
     .paginate()
     .fields();
 
-  const result = await queryBuilder.modelQuery;
-  const meta = await queryBuilder.countTotal();
-
+  // const result = await queryBuilder.modelQuery;
+  // const meta = await queryBuilder.countTotal();
+const [result, meta] = await Promise.all([
+  queryBuilder.modelQuery,
+  queryBuilder.countTotal()
+]);
   return { result, meta };
 };
 

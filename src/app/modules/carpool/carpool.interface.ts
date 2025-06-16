@@ -8,14 +8,14 @@ export type TLocation = {
 export type TCarpool = {
   createdBy: Types.ObjectId;
   eventName: string;
+  members?: Types.ObjectId[];
+  childrens?: Types.ObjectId[];
   startLocation: TLocation;
   endLocation: TLocation;
   carpoolType: "Does not repeat" | "Daily" | "Every Week" | "Custom";
+  driver?: Types.ObjectId;
   startDate?: Date;
   startTime?: Date;
-  driver?: Types.ObjectId;
-  members?: Types.ObjectId[];
-  childrens?: Types.ObjectId[];
   estimatedEndTime?: Date;
   repeatUntil?: Date;
   returnTrip?: {

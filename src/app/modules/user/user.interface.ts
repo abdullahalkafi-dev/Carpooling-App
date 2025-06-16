@@ -11,7 +11,7 @@ export type TUser = {
   status: "active" | "delete";
   verified?: boolean;
   fcmToken?: string;
-  address: Types.ObjectId[];
+  address?: Types.ObjectId[];
   authentication?: {
     isResetPassword: boolean;
     oneTimeCode: string;

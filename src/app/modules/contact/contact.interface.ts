@@ -9,7 +9,10 @@ export type TContact = {
 };
 
 export type ContactModal = {
-  isContactExists(requesterId: string, recipientId: string): Promise<TContact | null>;
+  isContactExists(
+    requesterId: string,
+    recipientId: string
+  ): Promise<TContact | null>;
   isAlreadyFriends(userId1: string, userId2: string): Promise<boolean>;
 } & Model<TContact>;
 
