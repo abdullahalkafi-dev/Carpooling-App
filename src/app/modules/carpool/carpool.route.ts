@@ -23,6 +23,21 @@ router.get("/user/:userId", carpoolController.getCarpoolsByUser);
 // Get a single carpool by ID
 router.get("/:id", carpoolController.getCarpoolById);
 
+// Add children to carpool (for members)
+router.patch(
+  "/:carpoolId/add-children",
+  auth(USER_ROLES.USER),
+  validateRequest(CarpoolValidation.addChildrenToCarpool),
+  carpoolController.addChildrenToCarpool
+);
+
+// Remove children from carpool (for members)
+router.patch(
+  "/:carpoolId/remove-children",
+  auth(USER_ROLES.USER),
+  validateRequest(CarpoolValidation.removeChildrenFromCarpool),
+  carpoolController.removeChildrenFromCarpool
+);
 // Update a carpool
 router.patch(
   "/:id",

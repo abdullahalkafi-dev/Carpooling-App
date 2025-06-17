@@ -5,7 +5,12 @@ import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 
 const inviteToCarpool = catchAsync(async (req: Request, res: Response) => {
-  const { carpoolId, inviteeIds, invitationType = "member", message } = req.body;
+  const {
+    carpoolId,
+    inviteeIds,
+    invitationType = "member",
+    message,
+  } = req.body;
   const inviterId = req.user.id;
 
   const invitations = await CarpoolInvitationServices.inviteToCarpool(
@@ -45,7 +50,10 @@ const respondToInvitation = catchAsync(async (req: Request, res: Response) => {
 
 const getMyInvitations = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const invitations = await CarpoolInvitationServices.getMyInvitations(userId, req.query);
+  const invitations = await CarpoolInvitationServices.getMyInvitations(
+    userId,
+    req.query
+  );
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -58,7 +66,10 @@ const getMyInvitations = catchAsync(async (req: Request, res: Response) => {
 
 const getSentInvitations = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
-  const invitations = await CarpoolInvitationServices.getSentInvitations(userId, req.query);
+  const invitations = await CarpoolInvitationServices.getSentInvitations(
+    userId,
+    req.query
+  );
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -69,23 +80,26 @@ const getSentInvitations = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getInvitationsForCarpool = catchAsync(async (req: Request, res: Response) => {
-  const { carpoolId } = req.params;
-  const userId = req.user.id;
-  const invitations = await CarpoolInvitationServices.getInvitationsForCarpool(
-    carpoolId,
-    userId,
-    req.query
-  );
+const getInvitationsForCarpool = catchAsync(
+  async (req: Request, res: Response) => {
+    const { carpoolId } = req.params;
+    const userId = req.user.id;
+    const invitations =
+      await CarpoolInvitationServices.getInvitationsForCarpool(
+        carpoolId,
+        userId,
+        req.query
+      );
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "Carpool invitations retrieved successfully",
-    data: invitations.result,
-    meta: invitations.meta,
-  });
-});
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "Carpool invitations retrieved successfully",
+      data: invitations.result,
+      meta: invitations.meta,
+    });
+  }
+);
 
 export const CarpoolInvitationController = {
   inviteToCarpool,

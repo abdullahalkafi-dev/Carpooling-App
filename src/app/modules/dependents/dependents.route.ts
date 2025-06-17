@@ -11,7 +11,7 @@ router.post(
   "/",
   fileUploadHandler,
   validateRequest(DependentValidation.createDependent),
-  DependentController.createDependent   // Changed from createDependent to match controller
+  DependentController.createDependent   
 );
 router.get("/", DependentController.getAllDependents);
 router.get("/:id", DependentController.getDependentById);

@@ -1,7 +1,10 @@
 import { StatusCodes } from "http-status-codes";
 import { QueryBuilder } from "../../builder/QueryBuilder";
 import AppError from "../../errors/AppError";
-import { TCarpoolInvitation, TReturnCarpoolInvitation } from "./carpoolInvitation.interface";
+import {
+  TCarpoolInvitation,
+  TReturnCarpoolInvitation,
+} from "./carpoolInvitation.interface";
 import { CarpoolInvitation } from "./carpoolInvitation.model";
 import { Carpool } from "../carpool/carpool.model";
 import { Contact } from "../contact/contact.model";
@@ -29,7 +32,10 @@ const inviteToCarpool = async (
 
   // Check if trying to invite as driver when driver already exists
   if (invitationType === "driver" && carpool.driver) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "This carpool already has a driver");
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "This carpool already has a driver"
+    );
   }
 
   const createdInvitations: TCarpoolInvitation[] = [];
@@ -47,27 +53,40 @@ const inviteToCarpool = async (
       // Check if inviter and invitee are friends
       const areFriends = await Contact.isAlreadyFriends(inviterId, inviteeId);
       if (!areFriends) {
-        errors.push(`You are not friends with ${invitee.firstName} ${invitee.lastName}`);
+        errors.push(
+          `You are not friends with ${invitee.firstName} ${invitee.lastName}`
+        );
         continue;
       }
 
       // Check if invitation already exists
-      const existingInvitation = await CarpoolInvitation.isInvitationExists(carpoolId, inviteeId);
+      const existingInvitation = await CarpoolInvitation.isInvitationExists(
+        carpoolId,
+        inviteeId
+      );
       if (existingInvitation) {
         if (existingInvitation.status === "pending") {
-          errors.push(`Invitation already sent to ${invitee.firstName} ${invitee.lastName}`);
+          errors.push(
+            `Invitation already sent to ${invitee.firstName} ${invitee.lastName}`
+          );
         } else {
-          errors.push(`${invitee.firstName} ${invitee.lastName} has already responded to this carpool`);
+          errors.push(
+            `${invitee.firstName} ${invitee.lastName} has already responded to this carpool`
+          );
         }
         continue;
       }
 
       // Check if user is already a member or driver
-      const isAlreadyMember = carpool.members?.some(memberId => memberId.toString() === inviteeId);
+      const isAlreadyMember = carpool.members?.some(
+        (memberId) => memberId.toString() === inviteeId
+      );
       const isAlreadyDriver = carpool.driver?.toString() === inviteeId;
-      
+
       if (isAlreadyMember || isAlreadyDriver) {
-        errors.push(`${invitee.firstName} ${invitee.lastName} is already part of this carpool`);
+        errors.push(
+          `${invitee.firstName} ${invitee.lastName} is already part of this carpool`
+        );
         continue;
       }
 
@@ -136,7 +155,10 @@ const respondToInvitation = async (
     if (invitation.invitationType === "driver") {
       // Check if carpool already has a driver
       if (carpool.driver) {
-        throw new AppError(StatusCodes.BAD_REQUEST, "This carpool already has a driver");
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          "This carpool already has a driver"
+        );
       }
       carpool.driver = invitation.invitee;
     } else {
@@ -165,19 +187,19 @@ const getMyInvitations = async (
 ): Promise<TReturnCarpoolInvitation.getAllInvitations> => {
   // Get invitations received by the user
   const invitationQuery = CarpoolInvitation.find({
-    invitee: userId
+    invitee: userId,
   }).populate([
     {
       path: "carpool",
       populate: {
         path: "createdBy",
-        select: "firstName lastName email image"
-      }
+        select: "firstName lastName email image",
+      },
     },
     {
       path: "inviter",
-      select: "firstName lastName email image"
-    }
+      select: "firstName lastName email image",
+    },
   ]);
 
   const queryBuilder = new QueryBuilder(invitationQuery, query)
@@ -198,16 +220,16 @@ const getSentInvitations = async (
 ): Promise<TReturnCarpoolInvitation.getAllInvitations> => {
   // Get invitations sent by the user
   const invitationQuery = CarpoolInvitation.find({
-    inviter: userId
+    inviter: userId,
   }).populate([
     {
       path: "carpool",
-      select: "eventName startLocation endLocation startDate startTime"
+      select: "eventName startLocation endLocation startDate startTime",
     },
     {
       path: "invitee",
-      select: "firstName lastName email image"
-    }
+      select: "firstName lastName email image",
+    },
   ]);
 
   const queryBuilder = new QueryBuilder(invitationQuery, query)
@@ -242,12 +264,12 @@ const getInvitationsForCarpool = async (
 
   // Get invitations for this carpool
   const invitationQuery = CarpoolInvitation.find({
-    carpool: carpoolId
+    carpool: carpoolId,
   }).populate([
     {
       path: "invitee",
-      select: "firstName lastName email image"
-    }
+      select: "firstName lastName email image",
+    },
   ]);
 
   const queryBuilder = new QueryBuilder(invitationQuery, query)

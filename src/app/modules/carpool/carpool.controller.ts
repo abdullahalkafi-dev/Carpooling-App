@@ -81,6 +81,43 @@ const deleteCarpool = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const addChildrenToCarpool = catchAsync(async (req: Request, res: Response) => {
+  const { carpoolId } = req.params;
+  const { childrenIds } = req.body;
+  const userId = req.user?.userId;
+
+  const result = await carpoolService.addChildrenToCarpool(
+    carpoolId,
+    userId,
+    childrenIds
+  );
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Children added to carpool successfully",
+    data: result,
+  });
+});
+
+const removeChildrenFromCarpool = catchAsync(async (req: Request, res: Response) => {
+  const { carpoolId } = req.params;
+  const { childrenIds } = req.body;
+  const userId = req.user?.userId;
+
+  const result = await carpoolService.removeChildrenFromCarpool(
+    carpoolId,
+    userId,
+    childrenIds
+  );
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Children removed from carpool successfully",
+    data: result,
+  });
+});
 
 export const carpoolController = {
   createCarpool,
@@ -89,4 +126,6 @@ export const carpoolController = {
   getCarpoolsByUser,
   updateCarpool,
   deleteCarpool,
+  addChildrenToCarpool,
+  removeChildrenFromCarpool
 };

@@ -200,8 +200,31 @@ const updateCarpool = z.object({
     })
     .strict(),
 });
+const addChildrenToCarpool = z.object({
+  body: z.object({
+    childrenIds: z
+      .array(z.string().min(1, "Child ID is required"))
+      .min(1, "At least one child ID is required")
+  }),
+  params: z.object({
+    carpoolId: z.string().min(1, "Carpool ID is required")
+  })
+});
+
+const removeChildrenFromCarpool = z.object({
+  body: z.object({
+    childrenIds: z
+      .array(z.string().min(1, "Child ID is required"))
+      .min(1, "At least one child ID is required")
+  }),
+  params: z.object({
+    carpoolId: z.string().min(1, "Carpool ID is required")
+  })
+});
 
 export const CarpoolValidation = {
   createCarpool,
   updateCarpool,
+  addChildrenToCarpool,
+  removeChildrenFromCarpool 
 };
