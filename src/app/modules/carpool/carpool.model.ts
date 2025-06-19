@@ -146,6 +146,9 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
   }
 );
 
+// Make sure these fields are indexed in your schemas
+carpoolSchema.index({ members: 1 });
+carpoolSchema.index({ createdBy: 1 });
 carpoolSchema.statics.isExistCarpoolById = async function (id: string) {
   return await this.findById(id);
 };

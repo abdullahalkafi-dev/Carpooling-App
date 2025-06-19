@@ -75,6 +75,7 @@ const dependentSchema = new Schema<TDependent>(
 
 // this for text search in names
 dependentSchema.index({ firstName: "text", lastName: "text" });
+dependentSchema.index({ parentId: 1, tag: 1 });
 dependentSchema.virtual("fullName").get(function () {
   return `${this.firstName} ${this.lastName}`;
 });

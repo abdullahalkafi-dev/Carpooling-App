@@ -91,7 +91,6 @@ const addChildrenToCarpool = catchAsync(async (req: Request, res: Response) => {
     userId,
     childrenIds
   );
-
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
