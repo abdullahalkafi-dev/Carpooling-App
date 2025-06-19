@@ -84,7 +84,7 @@ const deleteCarpool = catchAsync(async (req: Request, res: Response) => {
 const addChildrenToCarpool = catchAsync(async (req: Request, res: Response) => {
   const { carpoolId } = req.params;
   const { childrenIds } = req.body;
-  const userId = req.user?.userId;
+  const userId = req.user?.id;
 
   const result = await carpoolService.addChildrenToCarpool(
     carpoolId,
@@ -103,7 +103,7 @@ const addChildrenToCarpool = catchAsync(async (req: Request, res: Response) => {
 const removeChildrenFromCarpool = catchAsync(async (req: Request, res: Response) => {
   const { carpoolId } = req.params;
   const { childrenIds } = req.body;
-  const userId = req.user?.userId;
+  const userId = req.user?.id;
 
   const result = await carpoolService.removeChildrenFromCarpool(
     carpoolId,

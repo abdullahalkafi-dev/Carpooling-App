@@ -168,6 +168,7 @@ const addChildrenToCarpool = async (
   const isMember =
     carpool.members.includes(new Types.ObjectId(userId)) ||
     carpool.createdBy.toString() === userId;
+
   if (!isMember) {
     throw new AppError(
       StatusCodes.FORBIDDEN,
@@ -179,8 +180,11 @@ const addChildrenToCarpool = async (
   const userDependents = await Dependents.find({
     _id: { $in: childrenIds },
     parentId: userId,
+    tag: "children",
   });
-
+  console.log(childrenIds);
+  console.log(userDependents);
+  console.log(childrenIds.length);
   if (userDependents.length !== childrenIds.length) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
@@ -205,7 +209,7 @@ const addChildrenToCarpool = async (
     { path: "createdBy", select: "firstName lastName email" },
     { path: "members", select: "firstName lastName email" },
     { path: "driver", select: "firstName lastName email" },
-    { path: "childrens", select: "firstName lastName age" },
+    { path: "childrens", select: "firstName lastName age parentId" },
   ]);
 
   // Update cache
@@ -242,6 +246,7 @@ const removeChildrenFromCarpool = async (
   const userDependents = await Dependents.find({
     _id: { $in: childrenIds },
     parentId: userId,
+    tag: "children",
   });
 
   if (userDependents.length !== childrenIds.length) {
@@ -262,7 +267,7 @@ const removeChildrenFromCarpool = async (
     { path: "createdBy", select: "firstName lastName email" },
     { path: "members", select: "firstName lastName email" },
     { path: "driver", select: "firstName lastName email" },
-    { path: "childrens", select: "firstName lastName age" },
+    { path: "childrens", select: "firstName lastName age parentId" },
   ]);
 
   // Update cache
