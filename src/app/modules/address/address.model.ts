@@ -3,11 +3,6 @@ import { TAddressDocument, AddressModel } from "./address.interface";
 
 const addressSchema = new Schema<TAddressDocument, AddressModel>(
   {
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
     address: {
       type: String,
       required: true,
@@ -56,10 +51,6 @@ const addressSchema = new Schema<TAddressDocument, AddressModel>(
 
 // Create 2dsphere index for geospatial queries
 addressSchema.index({ location: "2dsphere" });
-// Create index for user to find addresses by user quickly
-addressSchema.index({ user: 1 });
-// Compound index for user and location queries
-addressSchema.index({ user: 1, location: "2dsphere" });
 
 // Static method to find nearby addresses
 addressSchema.statics.findNearby = async function (
@@ -78,11 +69,6 @@ addressSchema.statics.findNearby = async function (
       },
     },
   });
-};
-
-// Static method to find addresses by user ID
-addressSchema.statics.findByUserId = async function (userId: string) {
-  return this.find({ user: userId }).populate('user', 'firstName lastName email');
 };
 
 export const Address = model<TAddressDocument, AddressModel>(

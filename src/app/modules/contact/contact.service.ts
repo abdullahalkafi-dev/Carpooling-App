@@ -15,9 +15,10 @@ const sendContactRequest = async (
   if (!requester) {
     throw new AppError(StatusCodes.NOT_FOUND, "Requester not found");
   }
-
+console.log(recipientId);
   // Check if recipient exists
   const recipient = await User.findById(recipientId);
+  console.log(recipient);
   if (!recipient) {
     throw new AppError(StatusCodes.NOT_FOUND, "Recipient not found");
   }

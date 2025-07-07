@@ -1,7 +1,6 @@
-import { Document, Model, Types } from "mongoose";
+import { Document, Model } from "mongoose";
 
 export interface TAddress {
-  user: Types.ObjectId;
   address: string;
   location: {
     type: "Point";
@@ -17,5 +16,4 @@ export interface AddressModel extends Model<TAddressDocument> {
     latitude: number,
     maxDistance?: number
   ): Promise<TAddressDocument[]>;
-  findByUserId(userId: string | Types.ObjectId): Promise<TAddressDocument[]>;
 }
