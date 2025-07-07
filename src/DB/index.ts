@@ -14,16 +14,7 @@ const superUser: TUser = {
   verified: true,
   phoneNumber: "N/A",
 
-  address: [
-    {
-      title: "Home",
-      street: "123 Main St",
-      apartmentNumber: "Apt 4B",
-      city: "Dhaka",
-      state: "Dhaka",
-      postalCode: "1212",
-    },
-  ],
+
 
   status: "active",  
 };

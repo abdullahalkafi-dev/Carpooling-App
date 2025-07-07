@@ -54,48 +54,16 @@ const userSchema = new Schema<TUser, UserModal>(
       default: "USER",
     },
     address: {
-      type: [
-        {
-          title: {
-            type: String,
-            required: true,
-          },
-          street: {
-            type: String,
-            required: true,
-          },
-          apartmentNumber: {
-            type: String,
-            required: true,
-          },
-          city: {
-            type: String,
-            required: true,
-          },
-          state: {
-            type: String,
-            required: true,
-          },
-          postalCode: {
-            type: String,
-            required: true,
-          },
-        },
-      ],
-      default: [],
+      type: Schema.Types.ObjectId,
+      ref: "Address",
+      default: null,
     },
     phoneNumber: {
       type: String,
       unique: true,
       trim: true,
       sparse: true, // This prevents duplicate "" or null errors
-      validate: {
-        validator: (value: string) => {
-          const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-          return phoneRegex.test(value);
-        },
-        message: "Please provide a valid phone number",
-      },
+     
     },
     image: {
       type: String,

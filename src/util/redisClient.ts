@@ -1,6 +1,6 @@
 import { createClient, RedisClientType } from "redis";
 import config from "../config";
-console.log(`redis://${config.redis.host}${config.redis.port}`);
+console.log(`redis://${config.redis.host}:${config.redis.port}`);
 class RedisClient {
   public client: RedisClientType;
 
@@ -8,6 +8,13 @@ class RedisClient {
     this.client = createClient({
       url: `redis://${config.redis.host}:${config.redis.port}`,
       // 'redis://redis:6379',
+      socket: {
+        reconnectStrategy: (retries: number) => {
+          const delay = Math.min(retries * 1000, 30000); // Exponential backoff with a max delay of 30 seconds
+          console.log(`Reconnecting to Redis in ${delay}ms...`);
+          return delay;
+        },
+      },
     });
     this.client.on("error", (err: Error) => {
       console.error("Redis Client Error:", err);
@@ -24,6 +31,12 @@ class RedisClient {
   async ensureConnected(): Promise<void> {
     if (!this.client.isOpen) {
       await this.connect();
+    }
+  }
+  async disconnect(): Promise<void> {
+    if (this.client.isOpen) {
+      await this.client.disconnect();
+      console.log("Disconnected from Redis");
     }
   }
 

@@ -1,7 +1,7 @@
 import { model, Schema } from "mongoose";
 import mongooseLeanVirtuals from "mongoose-lean-virtuals";
-import { TChildren } from "./children.interface";
-const childrenSchema = new Schema<TChildren>(
+import { TDependent } from "./dependents.interface";
+const dependentSchema = new Schema<TDependent>(
   {
     firstName: {
       type: String,
@@ -74,12 +74,13 @@ const childrenSchema = new Schema<TChildren>(
 );
 
 // this for text search in names
-childrenSchema.index({ firstName: "text", lastName: "text" });
-childrenSchema.virtual("fullName").get(function () {
+dependentSchema.index({ firstName: "text", lastName: "text" });
+dependentSchema.index({ parentId: 1, tag: 1 });
+dependentSchema.virtual("fullName").get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
 
 // Plugin to include virtuals in lean queries.
-childrenSchema.plugin(mongooseLeanVirtuals);
+dependentSchema.plugin(mongooseLeanVirtuals);
 
-export const Children = model<TChildren>("Children", childrenSchema);
+export const Dependents = model<TDependent>("Dependents", dependentSchema);

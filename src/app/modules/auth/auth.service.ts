@@ -271,6 +271,42 @@ const deleteAccountToDB = async (user: JwtPayload) => {
 
   return result;
 };
+//resend otp
+const resendOtp = async (email: string) => {
+  const isExistUser = await User.findOne({
+    email,
+  });
+  if (!isExistUser) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+  }
+
+  //send mail
+  const otp = generateOTP();
+  console.log(otp, "otp");
+  const value = {
+    otp,
+    email: isExistUser.email,
+    name: isExistUser.firstName!,
+    theme: "theme-blue" as
+      | "theme-green"
+      | "theme-red"
+      | "theme-purple"
+      | "theme-orange"
+      | "theme-blue",
+    expiresIn: 30,
+  };
+  const createAccount = emailTemplate.createAccount(value);
+
+  emailHelper.sendEmail(createAccount);
+
+  //save to DB
+  const authentication = {
+    oneTimeCode: otp,
+    expireAt: new Date(Date.now() + 30 * 60000),
+  };
+
+  await User.findOneAndUpdate({ email }, { $set: { authentication } });
+};
 
 export const AuthService = {
   verifyEmailToDB,
@@ -279,4 +315,5 @@ export const AuthService = {
   resetPasswordToDB,
   changePasswordToDB,
   deleteAccountToDB,
+  resendOtp,
 };

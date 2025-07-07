@@ -1,17 +1,21 @@
 import { Model, Types } from "mongoose";
 
+export type TLocation = {
+  title: string;
+  coordinates: [number, number]; // [longitude, latitude]
+};
+
 export type TCarpool = {
-  role: "Attend"|"Drive";
-  user: Types.ObjectId;
+  createdBy: Types.ObjectId;
   eventName: string;
-  childrens: Types.ObjectId[];
-  startLocation: string;
-  totalSeats: number;
-  endLocation: string;
-  carpoolType: "Does not repeat"|"Daily"| "Every Week"| "Custom";
+  members?: Types.ObjectId[];
+  childrens?: Types.ObjectId[];
+  startLocation: TLocation;
+  endLocation: TLocation;
+  carpoolType: "Does not repeat" | "Daily" | "Every Week" | "Custom";
+  driver?: Types.ObjectId;
   startDate?: Date;
   startTime?: Date;
-  note?: string;
   estimatedEndTime?: Date;
   repeatUntil?: Date;
   returnTrip?: {
@@ -19,7 +23,16 @@ export type TCarpool = {
     returnStartTime?: Date;
     returnEstimatedEndTime?: Date;
   };
-  weeklyDays?: ("Monday"|"Tuesday"|"Wednesday"|"Thursday"|"Friday"|"Saturday"|"Sunday")[];
+  driverLocation?: Types.ObjectId;
+  weeklyDays?: (
+    | "Monday"
+    | "Tuesday"
+    | "Wednesday"
+    | "Thursday"
+    | "Friday"
+    | "Saturday"
+    | "Sunday"
+  )[];
 };
 
 export type CarpoolModal = {
@@ -46,11 +59,11 @@ export namespace TReturnCarpool {
     meta?: Meta;
   };
 
-  export type getSingleCarpool = TCarpool
-  export type updateCarpool = TCarpool
-  export type updateCarpoolActivationStatus = TCarpool
+  export type getSingleCarpool = TCarpool;
+  export type updateCarpool = TCarpool;
+  export type updateCarpoolActivationStatus = TCarpool;
 
-  export type updateCarpoolRole =TCarpool
+  export type updateCarpoolRole = TCarpool;
 
-  export type deleteCarpool =TCarpool
+  export type deleteCarpool = TCarpool;
 }

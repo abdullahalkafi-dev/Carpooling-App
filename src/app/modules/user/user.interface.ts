@@ -1,4 +1,4 @@
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
 export type TUser = {
   firstName: string;
@@ -11,14 +11,7 @@ export type TUser = {
   status: "active" | "delete";
   verified?: boolean;
   fcmToken?: string;
-  address: {
-    title: string;
-    street: string;
-    apartmentNumber: string;
-    city: string;
-    state: string;
-    postalCode: string;
-  }[];
+  address?: Types.ObjectId[];
   authentication?: {
     isResetPassword: boolean;
     oneTimeCode: string;
@@ -50,11 +43,11 @@ export namespace TReturnUser {
     meta?: Meta;
   };
 
-  export type getSingleUser = TUser
-  export type updateUser = TUser
-  export type updateUserActivationStatus = TUser
+  export type getSingleUser = TUser;
+  export type updateUser = TUser;
+  export type updateUserActivationStatus = TUser;
 
-  export type updateUserRole =TUser
+  export type updateUserRole = TUser;
 
-  export type deleteUser =TUser
+  export type deleteUser = TUser;
 }

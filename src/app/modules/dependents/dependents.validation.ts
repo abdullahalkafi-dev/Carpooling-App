@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const createChildren = z.object({
+const createDependent = z.object({
   data: z
     .object({
       firstName: z
@@ -48,7 +48,7 @@ const createChildren = z.object({
     ),
 });
 
-const updateChildren = z.object({
+const updateDependent = z.object({
   body: z
     .object({
       firstName: z
@@ -87,13 +87,13 @@ const updateChildren = z.object({
     .strict() .refine(
       (data) => !(data.tag !== "children" && data.schoolName),
       {
-        message: "School name is only allowed when tag is 'children'",
+        message: "School name is only allowed when tag is 'dependent'",
         path: ["schoolName"],
       }
     ),
 });
 
-export const ChildrenValidation = {
-  createChildren,
-  updateChildren,
+export const DependentValidation = {
+  createDependent,
+  updateDependent,
 };

@@ -4,20 +4,40 @@ import { z } from "zod";
 const createCarpool = z.object({
   body: z
     .object({
-      role: z.enum(["Attend", "Drive"], {
-        errorMap: () => ({
-          message: "Role must be either 'Attend' or 'Drive'",
-        }),
-      }),
+      createdBy: z.string().min(1, "User ID is required"),
       eventName: z.string().min(3, "Event name is required").trim(),
-      totalSeats: z.number().min(1, "Total seats must be at least 1"),
-      note: z.string().optional(),
-      user: z.string({ message: "User ID is required" }),
-      childrens: z
-        .array(z.string({ message: "Min 1 children id is required" }))
+      members: z
+        .array(z.string({ message: "Member ID is required" }))
         .optional(),
-      startLocation: z.string().min(3, "Start location is required").trim(),
-      endLocation: z.string().min(3, "End location is required").trim(),
+      childrens: z
+        .array(z.string({ message: "Min 1 childrens id is required" }))
+        .optional(),
+      startLocation: z.object({
+        title: z.string().min(3, "Start location title is required").trim(),
+        coordinates: z
+          .array(z.number())
+          .length(2, "Coordinates must be [longitude, latitude]")
+          .refine(
+            (coords) => 
+              coords[0] >= -180 && coords[0] <= 180 && 
+              coords[1] >= -90 && coords[1] <= 90,
+            "Invalid coordinates range"
+          )
+          .optional(),
+      }),
+      endLocation: z.object({
+        title: z.string().min(3, "End location title is required").trim(),
+        coordinates: z
+          .array(z.number())
+          .length(2, "Coordinates must be [longitude, latitude]")
+          .refine(
+            (coords) => 
+              coords[0] >= -180 && coords[0] <= 180 && 
+              coords[1] >= -90 && coords[1] <= 90,
+            "Invalid coordinates range"
+          )
+          .optional(),
+      }),
       carpoolType: z.enum(
         ["Does not repeat", "Daily", "Every Week", "Custom"],
         {
@@ -27,16 +47,27 @@ const createCarpool = z.object({
           }),
         }
       ),
-      // Conditional validation based on carpoolType
+      driver: z.string().min(1, "Driver ID is required"),
       startDate: z.string().optional(),
       startTime: z.string().optional(),
       estimatedEndTime: z.string().optional(),
+      repeatUntil: z.string().optional(),
       returnTrip: z
         .object({
           returnDate: z.string().optional(),
           returnStartTime: z.string().optional(),
           returnEstimatedEndTime: z.string().optional(),
         })
+        .optional(),
+      driverLocation: z
+        .array(z.number())
+        .length(2, "Driver location must be [longitude, latitude]")
+        .refine(
+          (coords) => 
+            coords[0] >= -180 && coords[0] <= 180 && 
+            coords[1] >= -90 && coords[1] <= 90,
+          "Invalid driver location coordinates"
+        )
         .optional(),
       weeklyDays: z
         .array(
@@ -90,37 +121,68 @@ const createCarpool = z.object({
 const updateCarpool = z.object({
   body: z
     .object({
-      role: z.enum(["Attend", "Drive"], {
-        errorMap: () => ({
-          message: "Role must be either 'Attend' or 'Drive'",
-        }),
-      }).optional(),
       eventName: z.string().min(3, "Event name is required").trim().optional(),
-      totalSeats: z.number().min(1, "Total seats must be at least 1").optional(),
-      note: z.string().optional(),
-      childrens: z
-        .array(z.string({ message: "Min 1 children id is required" }))
+      members: z
+        .array(z.string({ message: "Member ID is required" }))
         .optional(),
-      startLocation: z.string().min(3, "Start location is required").trim().optional(),
-      endLocation: z.string().min(3, "End location is required").trim().optional(),
-      carpoolType: z.enum(
-        ["Does not repeat", "Daily", "Every Week", "Custom"],
-        {
+      childrens: z
+        .array(z.string({ message: "Min 1 childrens id is required" }))
+        .optional(),
+      startLocation: z.object({
+        title: z.string().min(3, "Start location title is required").trim().optional(),
+        coordinates: z
+          .array(z.number())
+          .length(2, "Coordinates must be [longitude, latitude]")
+          .refine(
+            (coords) => 
+              coords[0] >= -180 && coords[0] <= 180 && 
+              coords[1] >= -90 && coords[1] <= 90,
+            "Invalid coordinates range"
+          )
+          .optional(),
+      }).optional(),
+      endLocation: z.object({
+        title: z.string().min(3, "End location title is required").trim().optional(),
+        coordinates: z
+          .array(z.number())
+          .length(2, "Coordinates must be [longitude, latitude]")
+          .refine(
+            (coords) => 
+              coords[0] >= -180 && coords[0] <= 180 && 
+              coords[1] >= -90 && coords[1] <= 90,
+            "Invalid coordinates range"
+          )
+          .optional(),
+      }).optional(),
+      carpoolType: z
+        .enum(["Does not repeat", "Daily", "Every Week", "Custom"], {
           errorMap: () => ({
             message:
               "Carpool type must be one of ['Does not repeat', 'Daily', 'Every Week', 'Custom']",
           }),
-        }
-      ).optional(),
+        })
+        .optional(),
+      driver: z.string().min(1, "Driver ID is required").optional(),
       startDate: z.string().optional(),
       startTime: z.string().optional(),
       estimatedEndTime: z.string().optional(),
+      repeatUntil: z.string().optional(),
       returnTrip: z
         .object({
           returnDate: z.string().optional(),
           returnStartTime: z.string().optional(),
           returnEstimatedEndTime: z.string().optional(),
         })
+        .optional(),
+      driverLocation: z
+        .array(z.number())
+        .length(2, "Driver location must be [longitude, latitude]")
+        .refine(
+          (coords) => 
+            coords[0] >= -180 && coords[0] <= 180 && 
+            coords[1] >= -90 && coords[1] <= 90,
+          "Invalid driver location coordinates"
+        )
         .optional(),
       weeklyDays: z
         .array(
@@ -138,8 +200,31 @@ const updateCarpool = z.object({
     })
     .strict(),
 });
+const addChildrenToCarpool = z.object({
+  body: z.object({
+    childrenIds: z
+      .array(z.string().min(1, "Child ID is required"))
+      .min(1, "At least one child ID is required")
+  }),
+  params: z.object({
+    carpoolId: z.string().min(1, "Carpool ID is required")
+  })
+});
+
+const removeChildrenFromCarpool = z.object({
+  body: z.object({
+    childrenIds: z
+      .array(z.string().min(1, "Child ID is required"))
+      .min(1, "At least one child ID is required")
+  }),
+  params: z.object({
+    carpoolId: z.string().min(1, "Carpool ID is required")
+  })
+});
 
 export const CarpoolValidation = {
   createCarpool,
   updateCarpool,
+  addChildrenToCarpool,
+  removeChildrenFromCarpool 
 };

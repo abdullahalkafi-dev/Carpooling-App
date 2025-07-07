@@ -56,18 +56,7 @@ const updateUser = z.object({
         .optional(),
       image: z.string().nullable().optional(),
       fcmToken: z.string().nullable().optional(),
-      address: z
-        .array(
-          z.object({
-            title: z.string(),
-            street: z.string(),
-            apartmentNumber: z.string(),
-            city: z.string(),
-            state: z.string(),
-            postalCode: z.string(),
-          })
-        )
-        .optional(),
+      address:z.string().nullable().optional(),
     })
     .strict(),
 });

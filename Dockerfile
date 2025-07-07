@@ -8,7 +8,7 @@ RUN  npm install -g pnpm && pnpm install
 
 COPY . .
 
-EXPOSE 5004
+EXPOSE 5007
 
 # Build or run your app
 CMD ["pnpm","run","dev"]

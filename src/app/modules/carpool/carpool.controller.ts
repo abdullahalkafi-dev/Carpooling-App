@@ -3,7 +3,6 @@ import { carpoolService } from "./carpool.service";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { StatusCodes } from "http-status-codes";
-import pick from "../../../shared/pick";
 
 // Create a new carpool
 const createCarpool = catchAsync(async (req: Request, res: Response) => {
@@ -45,6 +44,8 @@ const getCarpoolById = catchAsync(async (req: Request, res: Response) => {
 // Get all carpools by user ID
 const getCarpoolsByUser = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.params;
+    console.log(userId);
+
   const result = await carpoolService.getCarpoolsByUser(userId, req.query);
   
   sendResponse(res, {
@@ -80,6 +81,42 @@ const deleteCarpool = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const addChildrenToCarpool = catchAsync(async (req: Request, res: Response) => {
+  const { carpoolId } = req.params;
+  const { childrenIds } = req.body;
+  const userId = req.user?.id;
+
+  const result = await carpoolService.addChildrenToCarpool(
+    carpoolId,
+    userId,
+    childrenIds
+  );
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Children added to carpool successfully",
+    data: result,
+  });
+});
+
+const removeChildrenFromCarpool = catchAsync(async (req: Request, res: Response) => {
+  const { carpoolId } = req.params;
+  const { childrenIds } = req.body;
+  const userId = req.user?.id;
+
+  const result = await carpoolService.removeChildrenFromCarpool(
+    carpoolId,
+    userId,
+    childrenIds
+  );
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Children removed from carpool successfully",
+    data: result,
+  });
+});
 
 export const carpoolController = {
   createCarpool,
@@ -88,4 +125,6 @@ export const carpoolController = {
   getCarpoolsByUser,
   updateCarpool,
   deleteCarpool,
+  addChildrenToCarpool,
+  removeChildrenFromCarpool
 };

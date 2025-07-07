@@ -2,30 +2,19 @@ import { TCarpool } from "./carpool.interface";
 
 export const carpoolValidator = (payload: Partial<TCarpool>) => {
   const {
-    role,
     eventName,
     startLocation,
-    totalSeats,
     endLocation,
     carpoolType,
-    childrens,
     estimatedEndTime,
     repeatUntil,
     returnTrip,
     startDate,
     startTime,
-    user,
     weeklyDays,
   } = payload;
-  if(payload.childrens && payload?.childrens.length < 1){
-    throw new Error("Childrens is required");
-  }
-  if(totalSeats && totalSeats < 1){
-    throw new Error("Total seats must be greater than 0");
-    }
-    if(payload.childrens && payload?.childrens.length > totalSeats! ){
-        throw new Error("Total seats must be greater than or equal to childrens");
-    }
+
+
 
   if (carpoolType === "Does not repeat") {
     const requiredFields = [

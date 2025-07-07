@@ -15,7 +15,7 @@ const createUser = async (user: TUser): Promise<Partial<TUser>> => {
   if (existingUser && existingUser.verified) {
     throw new AppError(StatusCodes.BAD_REQUEST, "User already exists");
   }
-
+ 
   const newUser = await User.create(user);
   await UserCacheManage.updateUserCache(newUser._id.toString());
   return newUser;
