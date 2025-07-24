@@ -4,6 +4,12 @@ services:
     container_name: redis-carpooling
     ports:
       - "6381:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
   carpooling-backend:
     build:
       context: .
@@ -18,7 +24,9 @@ services:
       - carpooling-logs:/app/winston
       - /app/node_modules
     depends_on:
-      - redis-carpooling
+      redis-carpooling:
+        condition: service_healthy
+        
     command: pnpm run dev
     restart: unless-stopped
     environment:
