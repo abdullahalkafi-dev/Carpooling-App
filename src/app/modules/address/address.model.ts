@@ -1,6 +1,5 @@
 import { model, Schema } from "mongoose";
 import { TAddressDocument, AddressModel } from "./address.interface";
-
 const addressSchema = new Schema<TAddressDocument, AddressModel>(
   {
     address: {
