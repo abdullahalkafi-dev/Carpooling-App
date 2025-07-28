@@ -11,6 +11,8 @@ import { Dependents } from "../dependents/dependents.model";
 const createCarpool = async (payload: Partial<TCarpool>) => {
   // Validate the payload using the carpoolValidator function
   carpoolValidator(payload);
+  
+  payload.members= [payload.createdBy];
   const result = await Carpool.create(payload);
   result && CarpoolCacheManage.updateCarpoolCache(result._id.toString());
   return result;
@@ -98,7 +100,7 @@ const getCarpoolsByUser = async (
 
   return {
     meta,
-    data: result,
+    data: result.length > 0 ? result : null,
   };
 };
 
