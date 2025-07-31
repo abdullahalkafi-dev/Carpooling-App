@@ -45,8 +45,7 @@ const dependentSchema = new Schema<TDependent>(
     },
     image: {
       type: String,
-      required: true,
-      trim: true,
+      
       default: null,
     },
     tag: {

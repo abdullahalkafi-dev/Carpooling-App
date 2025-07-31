@@ -1,5 +1,3 @@
-
-
 import { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";
 import AppError from "../errors/AppError";
@@ -61,6 +59,7 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next): any => {
       },
     ];
   }
+  console.log({message, errorSources});
 
   //ultimate return
   return res.status(statusCode).json({
@@ -73,5 +72,3 @@ const globalErrorHandler: ErrorRequestHandler = (err, req, res, next): any => {
 };
 
 export default globalErrorHandler;
-
-

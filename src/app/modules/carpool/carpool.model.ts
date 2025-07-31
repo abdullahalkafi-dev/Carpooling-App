@@ -80,7 +80,12 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
     },
     driver: {
       type: Schema.Types.ObjectId,
-      required: true,
+      ref: "User",
+      required: false,
+      set: function(value: any) {
+        // Convert empty string to null so Mongoose doesn't try to cast it to ObjectId
+        return value === "" ? null : value;
+      }
     },
 
     startDate: {

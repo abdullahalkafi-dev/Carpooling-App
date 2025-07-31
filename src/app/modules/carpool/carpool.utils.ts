@@ -74,9 +74,9 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
       }
     }
 
-    if (!repeatUntil) {
-      throw new Error("repeatUntilDate is required");
-    }
+    // if (!repeatUntil) {
+    //   throw new Error("repeatUntilDate is required");
+    // }
   }
   if (carpoolType === "Daily") {
     const requiredFields = [
@@ -102,7 +102,16 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
         throw new Error("All return trip fields are required");
       }
     }
+  console.log(`
+    
+    
+    
+    ${returnTrip}
 
+
+    
+    
+    `);
     if (repeatUntil || weeklyDays || returnTrip?.returnDate) {
       throw new Error(
         "repeatUntil and weeklyDays and  returnDate are not applicable for Daily carpool type"

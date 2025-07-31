@@ -26,7 +26,7 @@ const createCarpool = z.object({
           .optional(),
       }),
       endLocation: z.object({
-        title: z.string().min(3, "End location title is required").trim(),
+        title: z.string().min(1, "End location title is required").trim(),
         coordinates: z
           .array(z.number())
           .length(2, "Coordinates must be [longitude, latitude]")
@@ -47,7 +47,7 @@ const createCarpool = z.object({
           }),
         }
       ),
-      driver: z.string().min(1, "Driver ID is required"),
+      driver: z.string(),
       startDate: z.string().optional(),
       startTime: z.string().optional(),
       estimatedEndTime: z.string().optional(),
@@ -142,7 +142,7 @@ const updateCarpool = z.object({
           .optional(),
       }).optional(),
       endLocation: z.object({
-        title: z.string().min(3, "End location title is required").trim().optional(),
+        title: z.string().min(1, "End location title is required").trim().optional(),
         coordinates: z
           .array(z.number())
           .length(2, "Coordinates must be [longitude, latitude]")
@@ -162,7 +162,7 @@ const updateCarpool = z.object({
           }),
         })
         .optional(),
-      driver: z.string().min(1, "Driver ID is required").optional(),
+      driver: z.string().optional(),
       startDate: z.string().optional(),
       startTime: z.string().optional(),
       estimatedEndTime: z.string().optional(),
