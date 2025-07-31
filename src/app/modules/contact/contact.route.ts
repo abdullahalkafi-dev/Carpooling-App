@@ -58,6 +58,13 @@ router.get(
   ContactController.getContactsForInvitation
 );
 
+// Get nearby users
+router.get(
+  "/nearby-users",
+  auth(USER_ROLES.USER),
+  ContactController.getNearbyUsers
+);
+
 // Block/Unblock contact
 router.patch(
   "/block-unblock/:contactId",

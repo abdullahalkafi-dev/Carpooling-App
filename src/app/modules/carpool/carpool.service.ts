@@ -11,7 +11,9 @@ import { Dependents } from "../dependents/dependents.model";
 const createCarpool = async (payload: Partial<TCarpool>) => {
   // Validate the payload using the carpoolValidator function
   carpoolValidator(payload);
-  
+   if(!payload.createdBy){
+    throw new AppError(StatusCodes.BAD_REQUEST, "createdBy is required");
+   }
   payload.members= [payload.createdBy];
   const result = await Carpool.create(payload);
   result && CarpoolCacheManage.updateCarpoolCache(result._id.toString());

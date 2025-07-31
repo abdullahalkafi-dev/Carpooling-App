@@ -1,4 +1,6 @@
 import { Model, Types } from "mongoose";
+import { TLocation } from "../carpool/carpool.interface";
+import { TAddress } from "../address/address.interface";
 
 export type TUser = {
   firstName: string;
@@ -11,7 +13,7 @@ export type TUser = {
   status: "active" | "delete";
   verified?: boolean;
   fcmToken?: string;
-  address?: Types.ObjectId;
+  address?: TAddress;
   authentication?: {
     isResetPassword: boolean;
     oneTimeCode: string;

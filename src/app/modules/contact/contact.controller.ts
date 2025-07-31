@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { ContactServices } from "./contact.service";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
+import AppError from "../../errors/AppError";
 
 const sendContactRequest = catchAsync(async (req: Request, res: Response) => {
   const { recipientId } = req.body;
@@ -113,6 +114,21 @@ const getContactsForInvitation = catchAsync(async (req: Request, res: Response) 
     meta: contacts.meta,
   });
 });
+const getNearbyUsers = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.id;
+
+const radius = req.query.radius ? parseFloat(req.query.radius as string) : 1000000; // Default radius to 10km if not provided
+
+console.log(radius, "radius in km", userId, "userId");
+  const nearbyUsers = await ContactServices.getNearbyUsers(userId, radius);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Nearby users retrieved successfully",
+    data: nearbyUsers.result,
+  });
+});
 
 export const ContactController = {
   sendContactRequest,
@@ -123,4 +139,5 @@ export const ContactController = {
   removeContact,
   blockUnblockContact,
   getContactsForInvitation,
+  getNearbyUsers
 };

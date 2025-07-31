@@ -5,6 +5,7 @@ import { TContact, TReturnContact } from "./contact.interface";
 import { Contact } from "./contact.model";
 import { User } from "../user/user.model";
 import ContactCacheManage from "./contact.cacheManage";
+import { TUser } from "../user/user.interface";
 
 const sendContactRequest = async (
   requesterId: string,
@@ -15,7 +16,7 @@ const sendContactRequest = async (
   if (!requester) {
     throw new AppError(StatusCodes.NOT_FOUND, "Requester not found");
   }
-console.log(recipientId);
+  console.log(recipientId);
   // Check if recipient exists
   const recipient = await User.findById(recipientId);
   console.log(recipient);
@@ -32,7 +33,10 @@ console.log(recipientId);
   }
 
   // Check if contact already exists
-  const existingContact = await Contact.isContactExists(requesterId, recipientId);
+  const existingContact = await Contact.isContactExists(
+    requesterId,
+    recipientId
+  );
   console.log(existingContact);
   if (existingContact) {
     if (existingContact.status === "pending") {
@@ -42,7 +46,10 @@ console.log(recipientId);
       throw new AppError(StatusCodes.CONFLICT, "You are already friends");
     }
     if (existingContact.status === "blocked") {
-      throw new AppError(StatusCodes.FORBIDDEN, "Cannot send request to blocked user");
+      throw new AppError(
+        StatusCodes.FORBIDDEN,
+        "Cannot send request to blocked user"
+      );
     }
   }
 
@@ -107,26 +114,26 @@ const getContactsByUser = async (
   const contactQuery = Contact.find({
     $or: [
       { requester: userId, status: "accepted" },
-      { recipient: userId, status: "accepted" }
-    ]
-  }).populate([
-    {
-      path: "requester",
-      select: " firstName  lastName email image",
-    },
-    {
-      path: "recipient",
-      select: " firstName  lastName email image",
-    },
-  ]).lean();
+      { recipient: userId, status: "accepted" },
+    ],
+  })
+    .populate([
+      {
+        path: "requester",
+        select: " firstName  lastName email image",
+      },
+      {
+        path: "recipient",
+        select: " firstName  lastName email image",
+      },
+    ])
+    .lean();
 
   const queryBuilder = new QueryBuilder(contactQuery, query)
     .filter()
     .sort()
     .paginate()
     .fields();
-
-    
 
   const result = await queryBuilder.modelQuery;
   console.time("getContactsByUser");
@@ -143,7 +150,7 @@ const getPendingRequests = async (
   // Get pending requests sent to the user
   const requestQuery = Contact.find({
     recipient: userId,
-    status: "pending"
+    status: "pending",
   }).populate([
     {
       path: "requester",
@@ -159,10 +166,10 @@ const getPendingRequests = async (
 
   // const result = await queryBuilder.modelQuery;
   // const meta = await queryBuilder.countTotal();
-const [result, meta] = await Promise.all([
-  queryBuilder.modelQuery,
-  queryBuilder.countTotal()
-]);
+  const [result, meta] = await Promise.all([
+    queryBuilder.modelQuery,
+    queryBuilder.countTotal(),
+  ]);
   return { result, meta };
 };
 
@@ -173,7 +180,7 @@ const getSentRequests = async (
   // Get pending requests sent by the user
   const requestQuery = Contact.find({
     requester: userId,
-    status: "pending"
+    status: "pending",
   }).populate([
     {
       path: "recipient",
@@ -272,8 +279,8 @@ const getContactsForInvitation = async (
   const contactQuery = Contact.find({
     $or: [
       { requester: userId, status: "accepted" },
-      { recipient: userId, status: "accepted" }
-    ]
+      { recipient: userId, status: "accepted" },
+    ],
   }).populate([
     {
       path: "requester",
@@ -296,10 +303,11 @@ const getContactsForInvitation = async (
 
   // Transform the result to show the friend (not the current user)
   const transformedResult = result.map((contact: any) => {
-    const friend = contact.requester._id.toString() === userId 
-      ? contact.recipient 
-      : contact.requester;
-    
+    const friend =
+      contact.requester._id.toString() === userId
+        ? contact.recipient
+        : contact.requester;
+
     return {
       ...contact.toObject(),
       friend,
@@ -307,6 +315,125 @@ const getContactsForInvitation = async (
   });
 
   return { result: transformedResult, meta };
+};
+const getNearbyUsers = async (userId: string, maxDistance: number) => {
+  // Find users within the specified radius
+  const user: any = await User.findById(userId)
+    .populate("address")
+    .lean();
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  if (
+    !user.address ||
+    !user.address.location ||
+    !user.address.location.coordinates ||
+    user.address.location.coordinates.length !== 2
+  ) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "User location not set");
+  }
+  
+  const coordinates = user.address.location.coordinates;
+  const radiusInRadians = maxDistance / 6378100; // Convert meters to radians (Earth radius in meters)
+
+  // Get all existing contacts (accepted, pending, blocked) for this user
+  const existingContacts = await Contact.find({
+    $or: [
+      { requester: userId },
+      { recipient: userId },
+    ],
+  }).lean();
+
+  // Extract user IDs from existing contacts
+  const contactUserIds = existingContacts.map(contact => {
+    return contact.requester.toString() === userId 
+      ? contact.recipient 
+      : contact.requester;
+  });
+
+  // Find users within the specified radius using aggregation pipeline
+  const nearbyUsers = await User.aggregate([
+    {
+      $match: {
+        _id: { 
+          $ne: user._id, // Exclude the current user
+          $nin: contactUserIds // Exclude existing contacts
+        },
+        address: { $ne: null }, // Ensure user has an address
+      },
+    },
+    {
+      $lookup: {
+        from: "addresses",
+        localField: "address",
+        foreignField: "_id",
+        as: "address",
+      },
+    },
+    {
+      $unwind: "$address",
+    },
+    {
+      $match: {
+        "address.location": {
+          $geoWithin: {
+            $centerSphere: [coordinates, radiusInRadians],
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        // Calculate distance in meters using the haversine formula
+        distance: {
+          $multiply: [
+            6378100, // Earth radius in meters
+            {
+              $acos: {
+                $add: [
+                  {
+                    $multiply: [
+                      { $sin: { $degreesToRadians: { $arrayElemAt: [coordinates, 1] } } },
+                      { $sin: { $degreesToRadians: { $arrayElemAt: ["$address.location.coordinates", 1] } } }
+                    ]
+                  },
+                  {
+                    $multiply: [
+                      { $cos: { $degreesToRadians: { $arrayElemAt: [coordinates, 1] } } },
+                      { $cos: { $degreesToRadians: { $arrayElemAt: ["$address.location.coordinates", 1] } } },
+                      { $cos: { 
+                        $degreesToRadians: {
+                          $subtract: [
+                            { $arrayElemAt: ["$address.location.coordinates", 0] },
+                            { $arrayElemAt: [coordinates, 0] }
+                          ]
+                        }
+                      }}
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      $project: {
+        userId: "$_id",
+        name: { $concat: ["$firstName", " ", "$lastName"] },
+        locationTitle: "$address.address",
+        distance: { $round: [{ $divide: ["$distance", 1000] }, 2] }, // Convert to km and round to 2 decimal places
+        image: 1,
+      },
+    },
+    {
+      $sort: { distance: 1 } // Sort by distance (closest first)
+    }
+  ]);
+
+  return { result: nearbyUsers, meta: { total: nearbyUsers.length } };
 };
 
 export const ContactServices = {
@@ -318,4 +445,5 @@ export const ContactServices = {
   removeContact,
   blockUnblockContact,
   getContactsForInvitation,
+  getNearbyUsers,
 };
