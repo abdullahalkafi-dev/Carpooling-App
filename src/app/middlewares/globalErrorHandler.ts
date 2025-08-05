@@ -10,7 +10,7 @@ import config from "../../config";
 import { TErrorSources } from "../../types/error";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const globalErrorHandler: ErrorRequestHandler = (err, req, res, next): any => {
+const globalErrorHandler: ErrorRequestHandler = (err, _req, res, _next): any => {
   let statusCode = 500;
   let message = "Something went wrong!";
   let errorSources: TErrorSources = [
