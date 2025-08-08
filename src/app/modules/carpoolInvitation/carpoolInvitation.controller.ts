@@ -33,7 +33,6 @@ const respondToInvitation = catchAsync(async (req: Request, res: Response) => {
   const { invitationId } = req.params;
   const { status } = req.body;
   const inviteeId = req.user.id;
-
   const invitation = await CarpoolInvitationServices.respondToInvitation(
     invitationId,
     inviteeId,

@@ -4,6 +4,7 @@ import { CarpoolValidation } from "./carpool.validation";
 import validateRequest from "../../middlewares/validateRequest";
 import auth from "../../middlewares/auth";
 import { USER_ROLES } from "../user/user.constant";
+import { CarpoolInvitationController } from "../carpoolInvitation/carpoolInvitation.controller";
 
 const router = express.Router();
 
@@ -23,6 +24,14 @@ router.get("/user/:userId", carpoolController.getCarpoolsByUser);
 // Get a single carpool by ID
 router.get("/:id", carpoolController.getCarpoolById);
 
+// Update driver of a carpool
+router.patch(
+  "/:carpoolId/update-driver",
+  auth(USER_ROLES.USER),
+  carpoolController.updateDriver
+);
+
+
 // Add children to carpool (for members)
 router.patch(
   "/:carpoolId/add-children",
@@ -38,6 +47,10 @@ router.patch(
   validateRequest(CarpoolValidation.removeChildrenFromCarpool),
   carpoolController.removeChildrenFromCarpool
 );
+
+router.patch("/:carpoolId/remove-user",auth(),carpoolController.removeUserFromCarpool);
+
+
 // Update a carpool
 router.patch(
   "/:id",

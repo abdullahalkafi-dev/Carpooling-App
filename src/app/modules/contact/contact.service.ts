@@ -424,13 +424,17 @@ const getNearbyUsers = async (userId: string, maxDistance: number) => {
         userId: "$_id",
         name: { $concat: ["$firstName", " ", "$lastName"] },
         locationTitle: "$address.address",
-        distance: { $round: [{ $divide: ["$distance", 1000] }, 2] }, // Convert to km and round to 2 decimal places
-        image: 1,
-      },
-    },
-    {
-      $sort: { distance: 1 } // Sort by distance (closest first)
-    }
+         // Convert to km and round to 2 decimal places
+          image: 1,
+          email: 1,
+          phone: { $ifNull: ["$phone", null] },
+          distance: { $round: [{ $divide: ["$distance", 1000] }, 2] }, // Convert to km
+          createdAt: 1,
+              },
+            },
+            {
+              $sort: { distance: 1 }
+        }
   ]);
 
   return { result: nearbyUsers, meta: { total: nearbyUsers.length } };

@@ -7,14 +7,15 @@ import { StatusCodes } from "http-status-codes";
 import AppError from "../../errors/AppError";
 import CarpoolCacheManage from "./carpool.cacheManage";
 import { Dependents } from "../dependents/dependents.model";
+import { CarpoolInvitation } from "../carpoolInvitation/carpoolInvitation.model";
 
 const createCarpool = async (payload: Partial<TCarpool>) => {
   // Validate the payload using the carpoolValidator function
   carpoolValidator(payload);
-   if(!payload.createdBy){
+  if (!payload.createdBy) {
     throw new AppError(StatusCodes.BAD_REQUEST, "createdBy is required");
-   }
-  payload.members= [payload.createdBy];
+  }
+  payload.members = [payload.createdBy];
   const result = await Carpool.create(payload);
   result && CarpoolCacheManage.updateCarpoolCache(result._id.toString());
   return result;
@@ -76,33 +77,70 @@ const getCarpoolsByUser = async (
     throw new AppError(StatusCodes.BAD_REQUEST, "Invalid user ID format");
   }
 
-  // Add userId to the query
-  const updatedQuery = { ...query, createdBy: userId };
-  const carpoolQuery = new QueryBuilder(
-    Carpool.find().populate([
-      {
-        path: "members",
-        select: "firstName email lastName image",
-      },
-      {
-        path: "childrens",
-        select: "firstName lastName image tag parentId",
-      },
-    ]),
-    updatedQuery
-  )
-    .search(["eventName"])
-    .filter()
-    .sort()
-    .paginate()
-    .fields();
+  // Convert userId to ObjectId for proper comparison
+  const userObjectId = new Types.ObjectId(userId);
 
-  const result = await carpoolQuery.modelQuery;
-  const meta = await carpoolQuery.countTotal();
+  // Create filter to find carpools where user is creator, member, or driver
+  const userFilter = {
+    $or: [
+      { createdBy: userObjectId }, // User is the creator
+      { members: { $in: [userObjectId] } }, // User is in members array
+      { driver: userObjectId }, // User is the driver
+    ],
+  };
 
+  const { createdBy, members, driver, ...cleanQuery } = query;
+
+  // Bypass QueryBuilder and use direct MongoDB query to avoid filter conflicts
+  let mongoQuery = Carpool.find(userFilter).populate([
+    {
+      path: "members",
+      select: "firstName email lastName image",
+    },
+    {
+      path: "childrens",
+      select: "firstName lastName image tag parentId",
+    },
+    {
+      path: "driver",
+      select: "firstName lastName email image",
+    },
+    {
+      path: "createdBy",
+      select: "firstName lastName email image",
+    },
+  ]);
+
+  // Apply additional filters from cleanQuery manually
+  if (cleanQuery.eventName) {
+    mongoQuery = mongoQuery
+      .where("eventName")
+      .regex(new RegExp(cleanQuery.eventName as string, "i"));
+  }
+
+  // Apply sorting
+  mongoQuery = mongoQuery.sort({ createdAt: -1 });
+
+  // Apply pagination
+  const page = Number(cleanQuery.page) || 1;
+  const limit = Number(cleanQuery.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  mongoQuery = mongoQuery.skip(skip).limit(limit);
+
+  const result = await mongoQuery;
+
+  // Count total documents for meta
+  const total = await Carpool.countDocuments(userFilter);
+  const meta = {
+    page,
+    limit,
+    total,
+    totalPage: Math.ceil(total / limit),
+  };
   return {
     meta,
-    data: result.length > 0 ? result : null,
+    result,
   };
 };
 
@@ -151,82 +189,6 @@ const deleteCarpool = async (id: string): Promise<TCarpool | null> => {
   return result;
 };
 
-// const addChildrenToCarpool = async (
-//   carpoolId: string,
-//   userId: string,
-//   childrenIds: string[]
-// ): Promise<TCarpool> => {
-//   // Check if carpool exists
-//   const carpool = await Carpool.findById(carpoolId);
-//   if (!carpool) {
-//     throw new AppError(StatusCodes.NOT_FOUND, "Carpool not found");
-//   }
-//   if (!Types.ObjectId.isValid(carpoolId)) {
-//     throw new AppError(StatusCodes.BAD_REQUEST, "Invalid carpool ID format");
-//   }
-//   if (!carpool.members || carpool.members.length === 0) {
-//     throw new AppError(StatusCodes.BAD_REQUEST, "Carpool has no members");
-//   }
-
-//   // Check if user is a member or creator of the carpool
-//   const isMember =
-//     carpool.members.includes(new Types.ObjectId(userId)) ||
-//     carpool.createdBy.toString() === userId;
-
-//   if (!isMember) {
-//     throw new AppError(
-//       StatusCodes.FORBIDDEN,
-//       "You are not a member of this carpool"
-//     );
-//   }
-
-//   // Verify all children belong to the user
-//   const userDependents = await Dependents.find({
-//     _id: { $in: childrenIds },
-//     parentId: userId,
-//   });
-
-//   if (userDependents.filter((dep) => dep.tag !== "children").length > 0) {
-//     throw new AppError(
-//       StatusCodes.BAD_REQUEST,
-//       "Only children can be added to carpool"
-//     );
-//   }
-
-//   if (userDependents.length !== childrenIds.length) {
-//     throw new AppError(
-//       StatusCodes.BAD_REQUEST,
-//       "Some children do not belong to you"
-//     );
-//   }
-
-//   // Add children to carpool (avoid duplicates)
-//   const existingChildren = carpool.childrens || [];
-//   const newChildren = childrenIds.filter(
-//     (childId) =>
-//       !existingChildren.some((existing) => existing.toString() === childId)
-//   ); 
-//   console.time("Adding children to carpool");
-   
-//   const updatedCarpool = await Carpool.findByIdAndUpdate(
-//     carpoolId,
-//     {
-//       $addToSet: { childrens: { $each: newChildren } },
-//     },
-//     { new: true }
-//   ).populate([
-//     { path: "createdBy", select: "firstName lastName email" },
-//     { path: "members", select: "firstName lastName email" },
-//     { path: "driver", select: "firstName lastName email" },
-//     { path: "childrens", select: "firstName lastName age parentId" },
-//   ]);
-//   console.timeEnd("Adding children to carpool");
-//   // Update cache
-//   await CarpoolCacheManage.updateCarpoolCache(carpoolId);
-//   return updatedCarpool as TCarpool;
-// };
-
-
 const addChildrenToCarpool = async (
   carpoolId: string,
   userId: string,
@@ -244,7 +206,7 @@ const addChildrenToCarpool = async (
     Dependents.find({
       _id: { $in: childrenIds },
       parentId: userId,
-    })
+    }),
   ]);
   console.timeEnd("Initial Queries");
 
@@ -259,7 +221,7 @@ const addChildrenToCarpool = async (
   // Check if user is a member or creator of the carpool
   const userObjectId = new Types.ObjectId(userId);
   const isMember =
-    carpool.members.some(member => member.equals(userObjectId)) ||
+    carpool.members.some((member) => member.equals(userObjectId)) ||
     carpool.createdBy.equals(userObjectId);
 
   if (!isMember) {
@@ -270,7 +232,7 @@ const addChildrenToCarpool = async (
   }
 
   // Check if any dependents are not children
-  if (userDependents.some(dep => dep.tag !== "children")) {
+  if (userDependents.some((dep) => dep.tag !== "children")) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "Only children can be added to carpool"
@@ -304,12 +266,12 @@ const addChildrenToCarpool = async (
       { path: "childrens", select: "firstName lastName age parentId" },
     ]);
     console.timeEnd("Manual Population");
-    
+
     // Update cache in non-blocking way
-    CarpoolCacheManage.updateCarpoolCache(carpoolId).catch(err => 
-      console.error('Cache update failed:', err)
+    CarpoolCacheManage.updateCarpoolCache(carpoolId).catch((err) =>
+      console.error("Cache update failed:", err)
     );
-    
+
     return carpool as TCarpool;
   }
 
@@ -322,22 +284,22 @@ const addChildrenToCarpool = async (
     },
     { new: true }
   )
-  .populate([
-    { path: "createdBy", select: "firstName lastName email" },
-    { path: "members", select: "firstName lastName email" },
-    { path: "driver", select: "firstName lastName email" },
-    { path: "childrens", select: "firstName lastName age parentId" },
-  ])
-  .lean(); // This can significantly improve performance
+    .populate([
+      { path: "createdBy", select: "firstName lastName email" },
+      { path: "members", select: "firstName lastName email" },
+      { path: "driver", select: "firstName lastName email" },
+      { path: "childrens", select: "firstName lastName age parentId" },
+    ])
+    .lean(); // This can significantly improve performance
   console.timeEnd("Update and Population");
 
   // Update cache in non-blocking way
   console.time("Cache Update");
-  CarpoolCacheManage.updateCarpoolCache(carpoolId).catch(err => 
-    console.error('Cache update failed:', err)
+  CarpoolCacheManage.updateCarpoolCache(carpoolId).catch((err) =>
+    console.error("Cache update failed:", err)
   );
   console.timeEnd("Cache Update");
-  
+
   return updatedCarpool as TCarpool;
 };
 const removeChildrenFromCarpool = async (
@@ -365,7 +327,8 @@ const removeChildrenFromCarpool = async (
   }
 
   // Verify all children belong to the user
-  const userDependents = await Dependents.find({     //! 2nd operation
+  const userDependents = await Dependents.find({
+    //! 2nd operation
     _id: { $in: childrenIds },
     parentId: userId,
     tag: "children",
@@ -398,6 +361,52 @@ const removeChildrenFromCarpool = async (
   return updatedCarpool as TCarpool;
 };
 
+const updateDriver = async (carpoolId: string, userId: string) => {
+  const updatedDriver = await Carpool.findByIdAndUpdate(
+    carpoolId,
+    { driver: userId },
+    { new: true }
+  );
+  return updatedDriver;
+};
+
+const removeUserFromCarpool = async (carpoolId: string, userId: string) => {
+  const carpool = await Carpool.findById(carpoolId);
+  if (!carpool) {
+    throw new AppError(StatusCodes.NOT_FOUND, "Carpool not found");
+  }
+  console.log(carpool.createdBy.toString(), userId);
+  if (carpool.createdBy.toString() === userId) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Cannot remove the creator of the carpool"
+    );
+  }
+
+  const updatedCarpool = await Carpool.findByIdAndUpdate(
+    carpoolId,
+    { $pull: { members: userId } },
+    { new: true }
+  );
+  if (!updatedCarpool) {
+    throw new AppError(StatusCodes.NOT_FOUND, "Carpool not found");
+  }
+  //remove children associated with the user
+  await Carpool.findByIdAndUpdate(
+    carpoolId,
+    { $pull: { childrens: { parentId: userId } } },
+    { new: true }
+  );
+  
+  await CarpoolInvitation.deleteMany({
+    carpool: carpoolId,
+    invitee: userId,
+  });
+
+
+  return updatedCarpool;
+};
+
 export const carpoolService = {
   createCarpool,
   getAllCarpools,
@@ -405,6 +414,8 @@ export const carpoolService = {
   getCarpoolsByUser,
   updateCarpool,
   deleteCarpool,
+  updateDriver,
   addChildrenToCarpool,
   removeChildrenFromCarpool,
+  removeUserFromCarpool,
 };

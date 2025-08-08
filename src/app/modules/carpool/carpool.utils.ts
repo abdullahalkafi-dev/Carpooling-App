@@ -1,3 +1,5 @@
+import { StatusCodes } from "http-status-codes";
+import AppError from "../../errors/AppError";
 import { TCarpool } from "./carpool.interface";
 
 export const carpoolValidator = (payload: Partial<TCarpool>) => {
@@ -26,7 +28,7 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
       estimatedEndTime,
     ];
     if (requiredFields.some((field) => !field)) {
-      throw new Error("All fields are required");
+      throw new AppError(StatusCodes.BAD_REQUEST, "All fields are required");
     }
     if (returnTrip) {
       const requiredReturnFields = [
@@ -36,12 +38,13 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
       ];
 
       if (requiredReturnFields.some((field) => !field)) {
-        throw new Error("All return trip fields are required");
+        throw new AppError(StatusCodes.BAD_REQUEST, "All return trip fields are required");
       }
     }
 
     if (repeatUntil || weeklyDays) {
-      throw new Error(
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
         "repeatUntil and weeklyDays are not applicable for Does not repeat carpool type"
       );
     }
@@ -59,7 +62,7 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
     ];
 
     if (requiredFields.some((field) => !field)) {
-      throw new Error("All fields are required");
+      throw new AppError(StatusCodes.BAD_REQUEST, "All fields are required");
     }
 
     if (returnTrip) {
@@ -70,7 +73,7 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
       ];
 
       if (requiredReturnFields.some((field) => !field)) {
-        throw new Error("All return trip fields are required");
+        throw new AppError(StatusCodes.BAD_REQUEST, "All return trip fields are required");
       }
     }
 
@@ -89,7 +92,7 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
     ];
 
     if (requiredFields.some((field) => !field)) {
-      throw new Error("All fields are required");
+      throw new AppError(StatusCodes.BAD_REQUEST, "All fields are required");
     }
 
     if (returnTrip) {
@@ -99,7 +102,7 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
       ];
 
       if (requiredReturnFields.some((field) => !field)) {
-        throw new Error("All return trip fields are required");
+        throw new AppError(StatusCodes.BAD_REQUEST, "All return trip fields are required");
       }
     }
   console.log(`
@@ -113,9 +116,7 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
     
     `);
     if (repeatUntil || weeklyDays || returnTrip?.returnDate) {
-      throw new Error(
-        "repeatUntil and weeklyDays and  returnDate are not applicable for Daily carpool type"
-      );
+      throw new AppError(StatusCodes.BAD_REQUEST, "repeatUntil and weeklyDays and  returnDate are not applicable for Daily carpool type");
     }
   }
 
@@ -132,7 +133,7 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
     ];
 
     if (requiredFields.some((field) => !field)) {
-      throw new Error("All fields are required");
+      throw new AppError(StatusCodes.BAD_REQUEST, "All fields are required");
     }
 
     if (returnTrip) {
@@ -143,7 +144,7 @@ export const carpoolValidator = (payload: Partial<TCarpool>) => {
       ];
 
       if (requiredReturnFields.some((field) => !field)) {
-        throw new Error("All return trip fields are required");
+        throw new AppError(StatusCodes.BAD_REQUEST, "All return trip fields are required");
       }
     }
   }

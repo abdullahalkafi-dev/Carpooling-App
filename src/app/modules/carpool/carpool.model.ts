@@ -51,6 +51,7 @@ const carpoolSchema = new Schema<TCarpool, CarpoolModal>(
 
     endLocation: 
     {
+      
       title: {
         type: String,
         required: true,

@@ -127,7 +127,6 @@ const respondToInvitation = async (
   if (!invitation) {
     throw new AppError(StatusCodes.NOT_FOUND, "Invitation not found");
   }
-
   // Check if the current user is the invitee
   if (invitation.invitee.toString() !== inviteeId) {
     throw new AppError(

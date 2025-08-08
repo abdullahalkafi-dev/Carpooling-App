@@ -93,6 +93,7 @@ const createCarpool = z.object({
           return data.startDate && data.startTime && data.estimatedEndTime;
         }
         if (data.carpoolType === "Every Week") {
+      
           return (
             data.startDate &&
             data.startTime &&

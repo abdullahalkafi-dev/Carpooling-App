@@ -19,7 +19,7 @@ const createCarpool = catchAsync(async (req: Request, res: Response) => {
 // Get all carpools with filtering and pagination
 const getAllCarpools = catchAsync(async (req: Request, res: Response) => {
   const result = await carpoolService.getAllCarpools(req.query);
-  
+
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -44,16 +44,16 @@ const getCarpoolById = catchAsync(async (req: Request, res: Response) => {
 // Get all carpools by user ID
 const getCarpoolsByUser = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.params;
-    console.log(userId);
+  console.log(userId);
 
   const result = await carpoolService.getCarpoolsByUser(userId, req.query);
-  
+
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
     message: "User's carpools retrieved successfully",
     meta: result.meta,
-    data: result.data,
+    data: result.result,
   });
 });
 
@@ -66,6 +66,19 @@ const updateCarpool = catchAsync(async (req: Request, res: Response) => {
     statusCode: StatusCodes.OK,
     success: true,
     message: "Carpool updated successfully",
+    data: result,
+  });
+});
+
+//update driver
+const updateDriver = catchAsync(async (req: Request, res: Response) => {
+  const { carpoolId } = req.params;
+  const userId = req.body.userId;
+  const result = await carpoolService.updateDriver(carpoolId, userId);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Driver updated successfully",
     data: result,
   });
 });
@@ -99,24 +112,43 @@ const addChildrenToCarpool = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const removeChildrenFromCarpool = catchAsync(async (req: Request, res: Response) => {
-  const { carpoolId } = req.params;
-  const { childrenIds } = req.body;
-  const userId = req.user?.id;
+const removeChildrenFromCarpool = catchAsync(
+  async (req: Request, res: Response) => {
+    const { carpoolId } = req.params;
+    const { childrenIds } = req.body;
+    const userId = req.user?.id;
 
-  const result = await carpoolService.removeChildrenFromCarpool(
-    carpoolId,
-    userId,
-    childrenIds
-  );
+    const result = await carpoolService.removeChildrenFromCarpool(
+      carpoolId,
+      userId,
+      childrenIds
+    );
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "Children removed from carpool successfully",
-    data: result,
-  });
-});
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "Children removed from carpool successfully",
+      data: result,
+    });
+  }
+);
+
+const removeUserFromCarpool = catchAsync(
+  async (req: Request, res: Response) => {
+    const { carpoolId } = req.params;
+    const userId = req.body?.userId;
+
+    const result = await carpoolService.removeUserFromCarpool(carpoolId, userId);
+
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "User removed from carpool successfully",
+      data: result,
+    });
+  }
+);
+
 
 export const carpoolController = {
   createCarpool,
@@ -126,5 +158,7 @@ export const carpoolController = {
   updateCarpool,
   deleteCarpool,
   addChildrenToCarpool,
-  removeChildrenFromCarpool
+  removeChildrenFromCarpool,
+  updateDriver,
+  removeUserFromCarpool
 };
