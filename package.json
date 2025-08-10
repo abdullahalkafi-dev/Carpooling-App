@@ -47,7 +47,7 @@
 	"version": "1.0.0",
 	"main": "index.js",
 	"scripts": {
-		"dev": "ts-node-dev --respawn --transpile-only --poll src/server.ts",
+		"dev": "ts-node-dev --respawn --transpile-only --ignore-watch node_modules --poll --rs src/server.ts",
 		"lint:check": "eslint --ignore-path .eslintignore --ext .js,.ts",
 		"lint:fix": "lint . --fix",
 		"prettier:check": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",

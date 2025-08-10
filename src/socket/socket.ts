@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import { handleSendMessage } from "./userMessage/message";
+import { handleSendCarpoolMessage, handleJoinCarpoolRoom, handleLeaveCarpoolRoom } from "./carpoolMessage/carpoolMessage";
 import { Message } from "../app/modules/message/message.model";
 
 export const users = new Map();
@@ -31,29 +32,117 @@ const setupSocket = (server: any) => {
         activeChatUsers.delete(data.receiverId);
       }
     });
-    socket.on("sendMessage", (data) => {
-      handleSendMessage(data); // Call the function to handle sending messages
+
+    socket.on("sendMessage", async (data) => {
+      try {
+        console.log("sendMessage", !data.senderId ||
+          !data.receiverId ||
+          (!data.message && !data.image));
+        // Add basic validation
+        if (
+          !data.senderId ||
+          !data.receiverId ||
+          (!data.message && !data.image)
+        ) {
+          socket.emit("error", { message: "Invalid message data" });
+          return;
+        }
+
+        await handleSendMessage(data); // Call the function to handle sending messages
+      } catch (error) {
+        console.error("Error in sendMessage:", error);
+        socket.emit("error", { message: "Failed to send message" });
+      }
+    });
+
+    // Carpool messaging events
+    socket.on("sendCarpoolMessage", async (data) => {
+      try {
+        console.log("sendCarpoolMessage", data);
+        // Add basic validation
+        if (
+          !data.carpoolId ||
+          !data.senderId ||
+          (!data.message && !data.image)
+        ) {
+          socket.emit("error", { message: "Invalid carpool message data" });
+          return;
+        }
+
+        await handleSendCarpoolMessage(data);
+      } catch (error) {
+        console.error("Error in sendCarpoolMessage:", error);
+        socket.emit("error", { message: "Failed to send carpool message" });
+      }
+    });
+
+    socket.on("joinCarpoolRoom", async (data) => {
+      try {
+        console.log("joinCarpoolRoom", data);
+        if (!data.userId || !data.carpoolId) {
+          socket.emit("error", { message: "Invalid carpool room data" });
+          return;
+        }
+
+        await handleJoinCarpoolRoom(data);
+      } catch (error) {
+        console.error("Error in joinCarpoolRoom:", error);
+        socket.emit("error", { message: "Failed to join carpool room" });
+      }
+    });
+
+    socket.on("leaveCarpoolRoom", (data) => {
+      try {
+        console.log("leaveCarpoolRoom", data);
+        if (!data.userId || !data.carpoolId) {
+          socket.emit("error", { message: "Invalid carpool room data" });
+          return;
+        }
+
+        handleLeaveCarpoolRoom(data);
+      } catch (error) {
+        console.error("Error in leaveCarpoolRoom:", error);
+        socket.emit("error", { message: "Failed to leave carpool room" });
+      }
     });
     socket.on("markAsRead", async (data) => {
-      console.log("markAsRead", data);
-      const { senderId, receiverId } = data;
+      try {
+        console.log("markAsRead", data);
+        const { senderId, receiverId } = data;
 
-      if (senderId && receiverId) {
-        await Message.updateMany(
-          { sender: senderId, receiver: receiverId, isRead: false },
-          { $set: { isRead: true } }
-        );
+        if (senderId && receiverId) {
+          await Message.updateMany(
+            { sender: senderId, receiver: receiverId, isRead: false },
+            { $set: { isRead: true } }
+          );
+
+          // Notify the sender that messages have been read
+          let senderSocketId;
+          users.forEach((socketIds, userId) => {
+            if (userId.toString() === senderId.toString()) {
+              if (socketIds && socketIds.length > 0) {
+                senderSocketId = socketIds[0];
+              }
+            }
+          });
+
+          if (senderSocketId) {
+            io.to(senderSocketId).emit(`messages-read`, {
+              senderId,
+              receiverId,
+              isRead: true,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error marking messages as read:", error);
+        socket.emit("error", { message: "Failed to mark messages as read" });
       }
-      io.emit(`receiver-${senderId}`, {
-        senderId,
-        receiverId,
-        isRead: true,
-      });
     });
 
     socket.on("disconnect", () => {
       users.forEach((socketIds, userId) => {
-        const updated = socketIds.filter((id:any) => id !== socket.id);
+        const updated = socketIds.filter((id: any) => id !== socket.id);
         if (updated.length > 0) {
           users.set(userId, updated);
         } else {

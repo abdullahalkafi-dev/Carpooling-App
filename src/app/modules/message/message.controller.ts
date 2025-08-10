@@ -33,20 +33,57 @@ const createMessageWithImage = catchAsync(
     };
 
     const result = await MessageServices.createMessageWithImage(message);
-    io.emit(`receiver-${message.receiver}`, {
-      senderId: message.sender,
-      receiverId: message.receiver,
-      message: message.message,
-      image: message.image,
-      isRead: false,
+    
+    // Import users map from socket
+    const { users } = require("../../../socket/socket");
+    
+    // Find receiver's socket ID
+    let receiverSocketId;
+    users.forEach((socketIds: string[], userId: string) => {
+      if (userId.toString() === message.receiver.toString()) {
+        if (socketIds && socketIds.length > 0) {
+          receiverSocketId = socketIds[0];
+        }
+      }
     });
-    io.emit(`receiver-${message.sender}`, {
-      senderId: message.sender,
-      receiverId: message.receiver,
-      message: message.message,
-      image: message.image,
-      isRead: false,
+
+    // Send to receiver if online
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit(`receiver-${message.receiver}`, {
+        _id: result._id,
+        senderId: message.sender,
+        receiverId: message.receiver,
+        message: message.message,
+        image: message.image,
+        isRead: false,
+        createAt: result.createAt,
+      });
+    }
+
+    // Find sender's socket ID for confirmation
+    let senderSocketId;
+    users.forEach((socketIds: string[], userId: string) => {
+      if (userId.toString() === message.sender.toString()) {
+        if (socketIds && socketIds.length > 0) {
+          senderSocketId = socketIds[0];
+        }
+      }
     });
+
+    // Send confirmation to sender
+    if (senderSocketId) {
+      io.to(senderSocketId).emit(`message-sent`, {
+        _id: result._id,
+        senderId: message.sender,
+        receiverId: message.receiver,
+        message: message.message,
+        image: message.image,
+        isRead: false,
+        createAt: result.createAt,
+        status: 'sent'
+      });
+    }
+
     sendResponse(res, {
       statusCode: StatusCodes.CREATED,
       success: true,

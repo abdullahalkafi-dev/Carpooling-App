@@ -56,17 +56,22 @@ process.on("unhandledRejection", (error) => {
 
 main();
 
-//SIGTERM
-process.on("SIGTERM", async () => {
-  logger.info("SIGTERM received, shutting down gracefully...");
-  if (server) {
-    server.close(() => {
-      logger.info("HTTP server closed.");
-      // Close DB or Redis here if needed
-      process.exit(0);
-    });
-  }
-});
+// Only handle SIGTERM in production environments
+// In development, ts-node-dev handles restarts via SIGTERM
+if (process.env.NODE_ENV === 'production') {
+  process.on("SIGTERM", async () => {
+    logger.info("SIGTERM received, shutting down gracefully...");
+    if (server) {
+      server.close(async () => {
+        logger.info("HTTP server closed.");
+        // Close DB or Redis connections
+        await redisClient.disconnect();
+        await mongoose.connection.close();
+        process.exit(0);
+      });
+    }
+  });
+}
 // import cluster from "cluster";
 // import os from "os";
 // import mongoose from "mongoose";
