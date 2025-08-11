@@ -6,6 +6,7 @@ import { MessageRoutes } from "../app/modules/message/message.route";
 import { CarpoolRoutes } from "../app/modules/carpool/carpool.route";
 import { ContactRoutes } from "../app/modules/contact/contact.route";
 import { CarpoolInvitationRoutes } from "../app/modules/carpoolInvitation/carpoolInvitation.route";
+import { CarpoolMessageRoutes } from "../app/modules/carpoolMessage/carpoolMessage.route";
 
 const router: Router = express.Router();
 
@@ -25,6 +26,10 @@ const apiRoutes = [
   {
     path: "/chat",
     route: MessageRoutes,
+  },
+  {
+    path: "/carpool-chat",
+    route: CarpoolMessageRoutes,
   },
   {
     path:"/carpool",
