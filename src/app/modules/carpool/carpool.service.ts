@@ -9,6 +9,10 @@ import CarpoolCacheManage from "./carpool.cacheManage";
 import { Dependents } from "../dependents/dependents.model";
 import { CarpoolInvitation } from "../carpoolInvitation/carpoolInvitation.model";
 
+
+
+
+ 
 const createCarpool = async (payload: Partial<TCarpool>) => {
   // Validate the payload using the carpoolValidator function
   carpoolValidator(payload);
@@ -16,6 +20,12 @@ const createCarpool = async (payload: Partial<TCarpool>) => {
     throw new AppError(StatusCodes.BAD_REQUEST, "createdBy is required");
   }
   payload.members = [payload.createdBy];
+  if(!payload.startLocation || !payload.startLocation.coordinates){
+    throw new AppError(StatusCodes.BAD_REQUEST, "startLocation is required");
+  }
+  //default driverLocation will carpoolStartLocation
+  payload.driverLocation = [payload.startLocation.coordinates[0], payload.startLocation.coordinates[1]];
+
   const result = await Carpool.create(payload);
   result && CarpoolCacheManage.updateCarpoolCache(result._id.toString());
   return result;
@@ -59,7 +69,7 @@ const getCarpoolById = async (id: string): Promise<TCarpool | null> => {
       path: "childrens",
       select: "firstName  lastName image tag parentId",
     },
-       {
+    {
       path: "driver",
       select: "firstName lastName email image",
     },
@@ -405,14 +415,62 @@ const removeUserFromCarpool = async (carpoolId: string, userId: string) => {
     { $pull: { childrens: { parentId: userId } } },
     { new: true }
   );
-  
+
   await CarpoolInvitation.deleteMany({
     carpool: carpoolId,
     invitee: userId,
   });
 
-
   return updatedCarpool;
+};
+
+const updateDriverLocation = async (carpoolId: string, location: [number, number]) => {
+  if (!Types.ObjectId.isValid(carpoolId)) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "Invalid carpool ID");
+  }
+
+  // Validate coordinates
+  const [longitude, latitude] = location;
+  if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST, 
+      "Invalid coordinates: longitude must be between -180 and 180, latitude between -90 and 90"
+    );
+  }
+
+  const updatedCarpool = await Carpool.findByIdAndUpdate(
+    carpoolId,
+    { driverLocation: location },
+    { new: true }
+  );
+
+  if (!updatedCarpool) {
+    throw new AppError(StatusCodes.NOT_FOUND, "Carpool not found");
+  }
+
+  // Update cache
+  await CarpoolCacheManage.updateCarpoolCache(carpoolId);
+  
+  return updatedCarpool;
+};
+
+const getDriverLocation = async (carpoolId: string) => {
+  if (!Types.ObjectId.isValid(carpoolId)) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "Invalid carpool ID");
+  }
+
+  const carpool = await Carpool.findById(carpoolId).select('driverLocation driver eventName updatedAt');
+  if (!carpool) {
+    throw new AppError(StatusCodes.NOT_FOUND, "Carpool not found");
+  }
+
+  return {
+    carpoolId: carpool._id,
+    eventName: carpool.eventName,
+    driverLocation: carpool.driverLocation,
+    driver: carpool.driver,
+    lastUpdated: (carpool as any).updatedAt
+  };
 };
 
 export const carpoolService = {
@@ -426,4 +484,6 @@ export const carpoolService = {
   addChildrenToCarpool,
   removeChildrenFromCarpool,
   removeUserFromCarpool,
+  updateDriverLocation,
+  getDriverLocation,
 };

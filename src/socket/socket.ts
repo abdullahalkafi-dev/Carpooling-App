@@ -1,6 +1,14 @@
 import { Server } from "socket.io";
 import { handleSendMessage } from "./userMessage/message";
 import { handleSendCarpoolMessage, handleJoinCarpoolRoom, handleLeaveCarpoolRoom } from "./carpoolMessage/carpoolMessage";
+import { 
+  handleDriverLocationStart, 
+  handleDriverLocationUpdate, 
+  handleDriverLocationStop,
+  handleDriverDisconnect,
+  joinCarpoolLocationRoom,
+  leaveCarpoolLocationRoom
+} from "./driverLocation/driverLocation";
 import { Message } from "../app/modules/message/message.model";
 
 export const users = new Map();
@@ -140,7 +148,32 @@ const setupSocket = (server: any) => {
       }
     });
 
+    // Driver location events
+    socket.on("startDriverLocation", (data) => {
+      handleDriverLocationStart(socket, data);
+    });
+
+    socket.on("updateDriverLocation", (data) => {
+      handleDriverLocationUpdate(socket, data);
+    });
+
+    socket.on("stopDriverLocation", () => {
+      handleDriverLocationStop(socket);
+    });
+
+    // Join/leave carpool location room for receiving location updates
+    socket.on("joinCarpoolLocation", (data) => {
+      joinCarpoolLocationRoom(socket, data);
+    });
+
+    socket.on("leaveCarpoolLocation", (data) => {
+      leaveCarpoolLocationRoom(socket, data);
+    });
+
     socket.on("disconnect", () => {
+      // Handle driver location sharing disconnect
+      handleDriverDisconnect(socket.id);
+      
       users.forEach((socketIds, userId) => {
         const updated = socketIds.filter((id: any) => id !== socket.id);
         if (updated.length > 0) {

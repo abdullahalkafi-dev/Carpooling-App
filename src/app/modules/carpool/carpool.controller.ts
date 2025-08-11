@@ -149,6 +149,17 @@ const removeUserFromCarpool = catchAsync(
   }
 );
 
+// Get current driver location for a carpool
+const getDriverLocation = catchAsync(async (req: Request, res: Response) => {
+  const { carpoolId } = req.params;
+  const result = await carpoolService.getDriverLocation(carpoolId);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Driver location retrieved successfully",
+    data: result,
+  });
+});
 
 export const carpoolController = {
   createCarpool,
@@ -160,5 +171,6 @@ export const carpoolController = {
   addChildrenToCarpool,
   removeChildrenFromCarpool,
   updateDriver,
-  removeUserFromCarpool
+  removeUserFromCarpool,
+  getDriverLocation
 };

@@ -23,7 +23,7 @@ export type TCarpool = {
     returnStartTime?: Date;
     returnEstimatedEndTime?: Date;
   };
-  driverLocation?: Types.ObjectId;
+  driverLocation?: number[]; //updated
   weeklyDays?: (
     | "Monday"
     | "Tuesday"

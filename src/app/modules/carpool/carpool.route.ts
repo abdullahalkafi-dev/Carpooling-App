@@ -24,6 +24,9 @@ router.get("/user/:userId", carpoolController.getCarpoolsByUser);
 // Get a single carpool by ID
 router.get("/:id", carpoolController.getCarpoolById);
 
+// Get driver location for a carpool
+router.get("/:carpoolId/driver-location", carpoolController.getDriverLocation);
+
 // Update driver of a carpool
 router.patch(
   "/:carpoolId/update-driver",
