@@ -59,6 +59,14 @@ const getCarpoolById = async (id: string): Promise<TCarpool | null> => {
       path: "childrens",
       select: "firstName  lastName image tag parentId",
     },
+       {
+      path: "driver",
+      select: "firstName lastName email image",
+    },
+    {
+      path: "createdBy",
+      select: "firstName lastName email image",
+    },
   ]);
   if (!result) {
     throw new AppError(StatusCodes.NOT_FOUND, "Carpool not found");
