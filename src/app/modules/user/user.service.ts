@@ -151,6 +151,24 @@ const updateUserRole = async (
   return user;
 };
 
+
+const getMe = async (userId: string): Promise<Partial<TReturnUser.getSingleUser>> => {
+  // First, try to retrieve the user from cache.
+  const cachedUser = await UserCacheManage.getCacheSingleUser(userId);
+  if (cachedUser) return cachedUser;
+
+  // If not cached, query the database using lean with virtuals enabled.
+  const user = await User.findById(userId).populate("address").lean({
+    virtuals: true,
+  });
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User not found");
+  }
+  // Cache the freshly retrieved user data.
+  await UserCacheManage.setCacheSingleUser(userId, user);
+  return user;
+};
+
 export const UserServices = {
   createUser,
   getAllUsers,
@@ -158,4 +176,5 @@ export const UserServices = {
   updateUser,
   updateUserActivationStatus,
   updateUserRole,
+  getMe
 };

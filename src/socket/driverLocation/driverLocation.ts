@@ -58,11 +58,13 @@ export const handleDriverLocationStart = async (
       return;
     }
 
+
     // Check if user is the driver or a member of the carpool
-    const isDriver = carpool.driver?.toString() === driverId;
+    const isDriver = carpool.driver?._id.toString() === driverId;
     const isMember = carpool.members?.some(
-      (member: Types.ObjectId) => member.toString() === driverId
+      (member: Types.ObjectId) => member._id.toString() === driverId
     );
+    console.log(isMember);
 
     if (!isDriver && !isMember) {
       socket.emit("driverLocationError", {

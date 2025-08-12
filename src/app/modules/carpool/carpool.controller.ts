@@ -138,7 +138,10 @@ const removeUserFromCarpool = catchAsync(
     const { carpoolId } = req.params;
     const userId = req.body?.userId;
 
-    const result = await carpoolService.removeUserFromCarpool(carpoolId, userId);
+    const result = await carpoolService.removeUserFromCarpool(
+      carpoolId,
+      userId
+    );
 
     sendResponse(res, {
       statusCode: StatusCodes.OK,
@@ -172,5 +175,5 @@ export const carpoolController = {
   removeChildrenFromCarpool,
   updateDriver,
   removeUserFromCarpool,
-  getDriverLocation
+  getDriverLocation,
 };

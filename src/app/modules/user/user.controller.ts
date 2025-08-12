@@ -77,6 +77,19 @@ const updateUserRole = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+//get me
+const getMe = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const result = await UserServices.getMe(userId);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "User retrieved successfully",
+    data: result,
+  });
+});
+
+
 export const UserController = {
   createUser,
   getAllUsers,
@@ -84,4 +97,5 @@ export const UserController = {
   updateUser,
   updateUserActivationStatus,
   updateUserRole,
+  getMe
 };
