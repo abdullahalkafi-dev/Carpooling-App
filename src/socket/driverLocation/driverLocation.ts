@@ -118,7 +118,7 @@ export const handleDriverLocationUpdate = async (
 ) => {
   try {
     const { location } = data;
-
+ console.log(data);
     // Get driver info from active drivers map
     const driverInfo = activeDrivers.get(socket.id);
     if (!driverInfo) {

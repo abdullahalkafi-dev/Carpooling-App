@@ -24,7 +24,16 @@ const setupSocket = (server: any) => {
     },
   });
   io.on("connection", (socket) => {
-    console.log("new user connected");
+    console.log(`
+      
+      
+      
+      
+      new user connected
+      
+      
+      
+      `);
     socket.on("register", (userId) => {
       const existingSockets = users.get(userId) || [];
       users.set(userId, [...existingSockets, socket.id]);

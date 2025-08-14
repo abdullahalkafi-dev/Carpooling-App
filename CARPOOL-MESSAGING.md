@@ -80,6 +80,8 @@ socket.on("carpool-message-error", (error) => {
 GET /api/carpool-chat/carpool/:carpoolId/messages?page=1&limit=50
 ```
 
+**Note:** Replace `:carpoolId` with the actual carpool ID in the URL.
+
 Response:
 ```json
 {
@@ -104,6 +106,8 @@ Response:
 ```
 GET /api/carpool-chat/carpool/:carpoolId/members
 ```
+
+**Note:** Replace `:carpoolId` with the actual carpool ID in the URL.
 
 Response:
 ```json
@@ -142,7 +146,7 @@ Fields:
 
 ```javascript
 // Initialize socket connection
-const socket = io("http://localhost:5007");
+const socket = io("http://localhost:5000"); // Update port as needed
 
 // Join carpool room when user opens carpool chat
 const joinCarpoolChat = (userId, carpoolId) => {
@@ -170,6 +174,136 @@ const sendCarpoolMessage = (carpoolId, senderId, message) => {
 const leaveCarpoolChat = (userId, carpoolId) => {
   socket.emit("leaveCarpoolRoom", { userId, carpoolId });
 };
+```
+
+### Complete Chat Integration Example
+
+```javascript
+class CarpoolChat {
+  constructor(socket, userId) {
+    this.socket = socket;
+    this.userId = userId;
+    this.currentCarpoolId = null;
+  }
+
+  // Initialize chat for a specific carpool
+  async initializeChat(carpoolId) {
+    this.currentCarpoolId = carpoolId;
+    
+    // Join the carpool room
+    this.socket.emit("joinCarpoolRoom", { 
+      userId: this.userId, 
+      carpoolId: carpoolId 
+    });
+
+    // Set up message listener
+    this.socket.on(`carpool-message-${carpoolId}`, (data) => {
+      this.displayMessage(data);
+    });
+
+    // Set up confirmation listeners
+    this.socket.on("carpool-message-sent", (data) => {
+      this.markMessageAsSent(data);
+    });
+
+    this.socket.on("carpool-message-error", (error) => {
+      this.handleMessageError(error);
+    });
+
+    // Load message history
+    try {
+      const response = await fetch(`/api/carpool-chat/carpool/${carpoolId}/messages?page=1&limit=50`);
+      const messageHistory = await response.json();
+      this.loadMessageHistory(messageHistory.data.messages);
+    } catch (error) {
+      console.error("Failed to load message history:", error);
+    }
+  }
+
+  // Send a text message
+  sendMessage(message) {
+    if (!this.currentCarpoolId || !message.trim()) return;
+    
+    this.socket.emit("sendCarpoolMessage", {
+      carpoolId: this.currentCarpoolId,
+      senderId: this.userId,
+      message: message.trim()
+    });
+  }
+
+  // Send message with image
+  async sendMessageWithImage(message, imageFile) {
+    if (!this.currentCarpoolId) return;
+
+    const formData = new FormData();
+    formData.append('data', JSON.stringify({
+      carpoolId: this.currentCarpoolId,
+      senderId: this.userId,
+      message: message || ""
+    }));
+    formData.append('image', imageFile);
+
+    try {
+      const response = await fetch('/api/carpool-chat/carpool/message-with-image', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+      console.log("Image message sent:", result);
+    } catch (error) {
+      console.error("Failed to send image message:", error);
+    }
+  }
+
+  // Clean up when leaving chat
+  leaveChat() {
+    if (this.currentCarpoolId) {
+      this.socket.emit("leaveCarpoolRoom", {
+        userId: this.userId,
+        carpoolId: this.currentCarpoolId
+      });
+      
+      // Remove listeners
+      this.socket.off(`carpool-message-${this.currentCarpoolId}`);
+      this.socket.off("carpool-message-sent");
+      this.socket.off("carpool-message-error");
+      
+      this.currentCarpoolId = null;
+    }
+  }
+
+  // Helper methods (implement based on your UI framework)
+  displayMessage(messageData) {
+    // Implementation depends on your frontend framework
+    console.log("New message:", messageData);
+  }
+
+  markMessageAsSent(messageData) {
+    // Update UI to show message was sent successfully
+    console.log("Message sent successfully:", messageData);
+  }
+
+  handleMessageError(error) {
+    // Handle and display error to user
+    console.error("Message error:", error);
+  }
+
+  loadMessageHistory(messages) {
+    // Load and display previous messages
+    messages.forEach(message => this.displayMessage(message));
+  }
+}
+
+// Usage
+const socket = io("http://localhost:5000");
+const userId = "current_user_id";
+const carpoolChat = new CarpoolChat(socket, userId);
+
+// When user opens a carpool chat
+carpoolChat.initializeChat("carpool_id_here");
+
+// When user closes the chat
+carpoolChat.leaveChat();
 ```
 
 ## Security Notes
@@ -204,3 +338,44 @@ The system includes comprehensive error handling for:
 - Socket connection problems
 
 All errors are logged server-side and appropriate error messages are sent to clients via socket events.
+
+## Testing the API
+
+### Using curl or Postman
+
+1. **Get Carpool Messages:**
+```bash
+curl -X GET "http://localhost:5000/api/carpool-chat/carpool/{CARPOOL_ID}/messages?page=1&limit=10"
+```
+
+2. **Get Carpool Members:**
+```bash
+curl -X GET "http://localhost:5000/api/carpool-chat/carpool/{CARPOOL_ID}/members"
+```
+
+3. **Send Message with Image:**
+```bash
+curl -X POST "http://localhost:5000/api/carpool-chat/carpool/message-with-image" \
+  -F "data={\"carpoolId\":\"CARPOOL_ID\",\"senderId\":\"USER_ID\",\"message\":\"Test message\"}" \
+  -F "image=@/path/to/image.jpg"
+```
+
+### Testing Socket Events
+
+```javascript
+// Test in browser console
+const socket = io("http://localhost:5000");
+
+// Test joining room
+socket.emit("joinCarpoolRoom", {
+  userId: "USER_ID",
+  carpoolId: "CARPOOL_ID"
+});
+
+// Test sending message
+socket.emit("sendCarpoolMessage", {
+  carpoolId: "CARPOOL_ID",
+  senderId: "USER_ID",
+  message: "Hello everyone!"
+});
+```
