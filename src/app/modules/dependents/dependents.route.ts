@@ -3,6 +3,7 @@ import { DependentController } from "./dependents.controller";
 import validateRequest from "../../middlewares/validateRequest";
 import { DependentValidation } from "./dependents.validation";
 import fileUploadHandler from "../../middlewares/fileUploadHandler";
+import auth from "../../middlewares/auth";
 
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.patch(
   // validateRequest(DependentValidation.updateDependent),
   DependentController.updateDependent
 );
+router.delete("/:id", auth(),DependentController.deleteDependent); 
 
 export const DependentRoutes: Router = router;

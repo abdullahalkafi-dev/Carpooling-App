@@ -300,7 +300,7 @@ const fileUploadHandler = (req: Request, res: Response, next: NextFunction) => {
           const inputFilePath = file.path;
           // Create new filename by replacing .tmp with .webp
           const newFilePath = inputFilePath.replace(/\.tmp$/, ".webp");
-
+     
           await sharp(inputFilePath).resize({width:1024}).webp({ quality: 40, effort: 6,
             nearLossless: false }).toFile(newFilePath);
 

@@ -20,7 +20,8 @@ router.get("/", carpoolController.getAllCarpools);
 
 // Get carpools by user ID
 router.get("/user/:userId", carpoolController.getCarpoolsByUser);
-
+//Get carpool the child is in
+router.get("/child",auth(), carpoolController.getCarpoolWhereMyChildIs);
 // Get a single carpool by ID
 router.get("/:id", carpoolController.getCarpoolById);
 

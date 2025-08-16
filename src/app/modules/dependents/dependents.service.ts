@@ -6,8 +6,12 @@ import { TDependent, TReturnDependent } from "./dependents.interface";
 import { Dependents } from "./dependents.model";
 import { User } from "../user/user.model";
 import unlinkFile from "../../../shared/unlinkFile";
+import { Types } from "mongoose";
+import { Carpool } from "../carpool/carpool.model";
 
-const createDependent = async (dependent: TDependent): Promise<Partial<TDependent>> => {
+const createDependent = async (
+  dependent: TDependent
+): Promise<Partial<TDependent>> => {
   //check if parent is exists
   const isParentExists = await User.findById(dependent.parentId);
   if (!isParentExists) {
@@ -45,7 +49,9 @@ const getDependentById = async (
   id: string
 ): Promise<Partial<TReturnDependent.getSingleDependent>> => {
   // First, try to retrieve the dependents from cache.
-  const cachedDependent = await DependentCacheManage.getCacheSingleDependent(id);
+  const cachedDependent = await DependentCacheManage.getCacheSingleDependent(
+    id
+  );
   if (cachedDependent) return cachedDependent;
 
   // If not cached, query the database using lean with virtuals enabled.
@@ -64,9 +70,8 @@ const getDependentByParentId = async (
   parentId: string
 ): Promise<Partial<TReturnDependent.getDependentByParentId>> => {
   // First, try to retrieve the dependents from cache.
-  const cachedDependent = await DependentCacheManage.getCacheDependentByParentId(
-    parentId
-  );
+  const cachedDependent =
+    await DependentCacheManage.getCacheDependentByParentId(parentId);
   if (cachedDependent) return cachedDependent;
   const isParentExists = await User.findById(parentId);
   if (!isParentExists) {
@@ -120,7 +125,24 @@ const updateDependent = async (
 
   return updatedDependent;
 };
+const deleteDependent = async (id: string): Promise<void> => {
+  // Validate if the id is a valid ObjectId
+  if (!Types.ObjectId.isValid(id)) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "Invalid ID format");
+  }
 
+  // Check if the dependent exists
+  const existingDependent = await Dependents.findById(id);
+  if (!existingDependent) {
+    throw new AppError(StatusCodes.NOT_FOUND, "Dependent not found");
+  }
+
+  await Dependents.findByIdAndDelete(id);
+  //remove children from carpools
+  await Carpool.updateMany({ childrens: id }, { $pull: { childrens: id } });
+
+  await DependentCacheManage.updateDependentCache(id);
+};
 
 export const DependentServices = {
   createDependent,
@@ -128,4 +150,5 @@ export const DependentServices = {
   getDependentById,
   updateDependent,
   getDependentByParentId,
+  deleteDependent
 };

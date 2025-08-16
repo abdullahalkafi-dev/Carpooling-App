@@ -57,15 +57,17 @@ const updateUser = z.object({
         )
         .trim()
         .optional(),
-      address: z.string(),
+      address: z.string().optional(),
       latitude: z
         .number()
         .min(-90, "Latitude must be between -90 and 90")
-        .max(90, "Latitude must be between -90 and 90"),
+        .max(90, "Latitude must be between -90 and 90")
+        .optional(),
       longitude: z
         .number()
         .min(-180, "Longitude must be between -180 and 180")
-        .max(180, "Longitude must be between -180 and 180"),
+        .max(180, "Longitude must be between -180 and 180")
+        .optional(),
       phoneNumber: z
         .string()
         .regex(/^\+?[1-9]\d{1,14}$/, "Please provide a valid phone number")

@@ -472,6 +472,42 @@ const getDriverLocation = async (carpoolId: string) => {
     lastUpdated: (carpool as any).updatedAt
   };
 };
+const getCarpoolWhereMyChildIs = async (userId: string) => {
+  console.log(userId);
+  // First, find all dependents (children) that belong to the user
+  const userChildren = await Dependents.find({ 
+    parentId: userId, 
+    tag: "children" 
+  }).select('_id');
+  
+  const childrenIds = userChildren.map(child => child._id);
+  
+  // Then find carpools that contain any of these children
+  const carpools = await Carpool.find({
+    childrens: { $in: childrenIds }
+  })
+  .populate([
+    {
+      path: "members",
+      select: "firstName email lastName image",
+    },
+    {
+      path: "childrens",
+      select: "firstName lastName image tag parentId",
+    },
+    {
+      path: "driver",
+      select: "firstName lastName email image",
+    },
+    {
+      path: "createdBy",
+      select: "firstName lastName email image",
+    },
+  ])
+  .sort({ startDate: 1, startTime: 1 });
+  
+  return carpools;
+};
 
 export const carpoolService = {
   createCarpool,
@@ -486,4 +522,5 @@ export const carpoolService = {
   removeUserFromCarpool,
   updateDriverLocation,
   getDriverLocation,
+  getCarpoolWhereMyChildIs
 };

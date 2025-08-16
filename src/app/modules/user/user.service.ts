@@ -6,6 +6,7 @@ import { TReturnUser, TUser } from "./user.interface";
 import { User } from "./user.model";
 import { AuthService } from "../auth/auth.service";
 import { Address } from "../address/address.model";
+import { unlinkFileSync } from "../../../shared/unlinkFile";
 
 const createUser = async (user: Partial<TUser>): Promise<Partial<TUser>> => {
   const existingUser = await User.findOne({ email: user.email });
@@ -40,7 +41,6 @@ const createUser = async (user: Partial<TUser>): Promise<Partial<TUser>> => {
     role: "USER",
     address: address._id,
   };
-
 
   const newUser = await User.create(userData);
   if (!newUser) {
@@ -83,7 +83,7 @@ const getUserById = async (
   // If not cached, query the database using lean with virtuals enabled.
   const user = await User.findById(id).populate("address").lean({
     virtuals: true,
-    });
+  });
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, "User not found");
   }
@@ -95,18 +95,29 @@ const updateUser = async (
   id: string,
   updateData: Partial<TReturnUser.updateUser>
 ): Promise<Partial<TReturnUser.updateUser>> => {
-  const user = await User.findByIdAndUpdate(id, updateData, {
-    new: true,
-  });
+  const user = await User.findById(id);
+
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  if (updateData.image && user.image) {
+        unlinkFileSync(user.image);
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(id, updateData, {
+    new: true,
+  });
+
+  if (!updatedUser) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User update failed");
   }
   //remove cache
   await UserCacheManage.updateUserCache(id);
 
   //set new cache
-  UserCacheManage.setCacheSingleUser(id, user);
-  return user;
+  UserCacheManage.setCacheSingleUser(id, updatedUser);
+  return updatedUser;
 };
 const updateUserActivationStatus = async (
   id: string,
@@ -151,8 +162,9 @@ const updateUserRole = async (
   return user;
 };
 
-
-const getMe = async (userId: string): Promise<Partial<TReturnUser.getSingleUser>> => {
+const getMe = async (
+  userId: string
+): Promise<Partial<TReturnUser.getSingleUser>> => {
   // First, try to retrieve the user from cache.
   const cachedUser = await UserCacheManage.getCacheSingleUser(userId);
   if (cachedUser) return cachedUser;
@@ -176,5 +188,5 @@ export const UserServices = {
   updateUser,
   updateUserActivationStatus,
   updateUserRole,
-  getMe
+  getMe,
 };

@@ -39,7 +39,22 @@ const getUserById = catchAsync(async (req: Request, res: Response) => {
 const updateUser = catchAsync(async (req: Request, res: Response) => {
   const data = req.body.data ? JSON.parse(req.body.data) : null;
 
-  const user = await UserServices.updateUser(req.params.id, data);
+  let image = null;
+  if (req.files && "image" in req.files && req.files.image[0]) {
+    image = req.files.image[0].path.replace('/app/uploads', '');
+
+     
+  }
+
+  const userData = {
+    ...data,
+    image: image,
+  };
+  if (userData.image === null) {
+    delete userData.image;
+  }
+
+  const user = await UserServices.updateUser(req.params.id, userData);
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -89,7 +104,6 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 export const UserController = {
   createUser,
   getAllUsers,
@@ -97,5 +111,5 @@ export const UserController = {
   updateUser,
   updateUserActivationStatus,
   updateUserRole,
-  getMe
+  getMe,
 };
