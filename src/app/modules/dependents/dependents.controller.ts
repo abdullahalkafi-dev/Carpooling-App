@@ -94,11 +94,14 @@ const updateDependent = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const deleteDependent = catchAsync(async (req: Request, res: Response) => {
+   console.log(req.params.id,"user id");
   await DependentServices.deleteDependent(req.params.id);
+  
   sendResponse(res, {
-    statusCode: StatusCodes.NO_CONTENT,
+    statusCode: StatusCodes.OK,
     success: true,
     message: "Dependent deleted successfully",
+    data:null
   });
 });
 export const DependentController = {

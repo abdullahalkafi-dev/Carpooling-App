@@ -19,9 +19,10 @@ const createDependent = async (
   }
   const newDependent = await Dependents.create(dependent);
   await DependentCacheManage.updateDependentCache(
-    newDependent._id.toString(),
     dependent.parentId.toString()
   );
+ 
+
   return newDependent;
 };
 const getAllDependents = async (
@@ -66,13 +67,14 @@ const getDependentById = async (
   return dependents;
 };
 
+
 const getDependentByParentId = async (
   parentId: string
 ): Promise<Partial<TReturnDependent.getDependentByParentId>> => {
   // First, try to retrieve the dependents from cache.
-  const cachedDependent =
-    await DependentCacheManage.getCacheDependentByParentId(parentId);
-  if (cachedDependent) return cachedDependent;
+  // const cachedDependent =
+  //   await DependentCacheManage.getCacheDependentByParentId(parentId);
+  // if (cachedDependent) return cachedDependent;
   const isParentExists = await User.findById(parentId);
   if (!isParentExists) {
     throw new AppError(StatusCodes.NOT_FOUND, "Parent not found");
@@ -121,11 +123,13 @@ const updateDependent = async (
     }
   }
 
-  await DependentCacheManage.updateDependentCache(id);
+  await DependentCacheManage.updateDependentCache(updatedDependent.parentId.toString());
+  await DependentCacheManage.updateDependentCache(updatedDependent._id.toString());
 
   return updatedDependent;
 };
 const deleteDependent = async (id: string): Promise<void> => {
+  console.log(id, "user id");
   // Validate if the id is a valid ObjectId
   if (!Types.ObjectId.isValid(id)) {
     throw new AppError(StatusCodes.BAD_REQUEST, "Invalid ID format");
@@ -133,6 +137,7 @@ const deleteDependent = async (id: string): Promise<void> => {
 
   // Check if the dependent exists
   const existingDependent = await Dependents.findById(id);
+  console.log(existingDependent);
   if (!existingDependent) {
     throw new AppError(StatusCodes.NOT_FOUND, "Dependent not found");
   }
@@ -141,7 +146,9 @@ const deleteDependent = async (id: string): Promise<void> => {
   //remove children from carpools
   await Carpool.updateMany({ childrens: id }, { $pull: { childrens: id } });
 
-  await DependentCacheManage.updateDependentCache(id);
+ await DependentCacheManage.updateDependentCache(existingDependent.parentId.toString());
+ await DependentCacheManage.updateDependentCache(existingDependent._id.toString());
+ 
 };
 
 export const DependentServices = {
@@ -150,5 +157,5 @@ export const DependentServices = {
   getDependentById,
   updateDependent,
   getDependentByParentId,
-  deleteDependent
+  deleteDependent,
 };
