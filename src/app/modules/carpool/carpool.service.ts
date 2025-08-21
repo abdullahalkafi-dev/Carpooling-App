@@ -156,6 +156,7 @@ const getCarpoolsByUser = async (
     total,
     totalPage: Math.ceil(total / limit),
   };
+  console.log("Carpool Query Result:", result);
   return {
     meta,
     result,

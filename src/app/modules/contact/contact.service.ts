@@ -5,7 +5,6 @@ import { TContact, TReturnContact } from "./contact.interface";
 import { Contact } from "./contact.model";
 import { User } from "../user/user.model";
 import ContactCacheManage from "./contact.cacheManage";
-import { TUser } from "../user/user.interface";
 
 const sendContactRequest = async (
   requesterId: string,
@@ -71,6 +70,7 @@ const respondToContactRequest = async (
   recipientId: string,
   status: "accepted" | "blocked"
 ): Promise<TContact> => {
+  console.log(requestId, recipientId, status);
   // Find the contact request
   const contactRequest = await Contact.findById(requestId);
   if (!contactRequest) {
@@ -170,6 +170,7 @@ const getPendingRequests = async (
     queryBuilder.modelQuery,
     queryBuilder.countTotal(),
   ]);
+  console.log(result);
   return { result, meta };
 };
 

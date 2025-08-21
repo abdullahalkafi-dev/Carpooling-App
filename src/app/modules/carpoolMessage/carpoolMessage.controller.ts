@@ -102,7 +102,7 @@ const createCarpoolMessageWithImage = catchAsync(
 );
 
 const getCarpoolMessages = catchAsync(async (req: Request, res: Response) => {
-  const query = req.query;
+  const query = req.params;
   const { carpoolId } = query;
   
   if (!carpoolId) {

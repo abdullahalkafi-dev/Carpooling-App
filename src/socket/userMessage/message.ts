@@ -40,6 +40,19 @@ export const handleSendMessage = async (data: {
       image: data.image,
       isRead: false,
     });
+    console.log(
+      `
+      d
+      d
+      d
+      d
+      d
+      d
+      
+      d
+      `,
+      savedMessage
+    );
 
     // Send to receiver if they are online
     if (receiverSocketId) {
@@ -73,10 +86,9 @@ export const handleSendMessage = async (data: {
         image: data.image,
         isRead: false,
         createAt: savedMessage.createAt,
-        status: 'sent'
+        status: "sent",
       });
     }
-
   } catch (error) {
     console.error("Error handling send message:", error);
   }

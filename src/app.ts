@@ -9,14 +9,15 @@ import { Morgan } from "./shared/morgen";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 // import admin from 'firebase-admin';
-// import ServiceAccount from '../carpool-admin.json';
+import config from "./config";
+
 const app: express.Application = express();
 
 //morgan
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);
 // admin.initializeApp({
-//   credential: admin.credential.cert(ServiceAccount as admin.ServiceAccount),
+//   credential: admin.credential.cert(config.firebase as admin.ServiceAccount),
 // });
 //body parser
 app.use(

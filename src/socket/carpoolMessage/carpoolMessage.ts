@@ -25,6 +25,22 @@ export const handleSendCarpoolMessage = async (data: {
       image: data.image,
     });
 
+    console.log(`
+      s
+      s
+      s
+      s
+      s
+      s
+      s
+      s
+      s
+      s
+      s
+      s
+
+      `,savedMessage);
+
     // Get carpool members
     const { members } = await CarpoolMessageServices.getCarpoolMembers(
       data.carpoolId.toString()

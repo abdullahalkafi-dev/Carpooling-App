@@ -122,6 +122,8 @@ const respondToInvitation = async (
   inviteeId: string,
   status: "accepted" | "declined"
 ): Promise<TCarpoolInvitation> => {
+
+  console.log(invitationId, inviteeId, status);
   // Find the invitation
   const invitation = await CarpoolInvitation.findById(invitationId);
   if (!invitation) {
@@ -187,6 +189,7 @@ const getMyInvitations = async (
   // Get invitations received by the user
   const invitationQuery = CarpoolInvitation.find({
     invitee: userId,
+    status: { $ne: "accepted" }
   }).populate([
     {
       path: "carpool",
@@ -209,7 +212,7 @@ const getMyInvitations = async (
 
   const result = await queryBuilder.modelQuery;
   const meta = await queryBuilder.countTotal();
-
+ console.log(result);
   return { result, meta };
 };
 

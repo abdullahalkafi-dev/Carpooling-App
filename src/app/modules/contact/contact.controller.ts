@@ -117,7 +117,7 @@ const getContactsForInvitation = catchAsync(async (req: Request, res: Response) 
 const getNearbyUsers = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.id;
 
-const radius = req.query.radius ? parseFloat(req.query.radius as string) : 1000000; // Default radius to 10km if not provided
+const radius = req.query.radius ? parseFloat(req.query.radius as string) : 10000000; // Default radius to 10km if not provided
 
 console.log(radius, "radius in km", userId, "userId");
   const nearbyUsers = await ContactServices.getNearbyUsers(userId, radius);
