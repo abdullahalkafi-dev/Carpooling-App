@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { io, users } from "../socket";
 import { CarpoolMessageServices } from "../../app/modules/carpoolMessage/carpoolMessage.service";
+import NotificationScheduler from "../../app/modules/notification/notification.scheduler";
 
 export const handleSendCarpoolMessage = async (data: {
   carpoolId: Types.ObjectId;
@@ -105,6 +106,19 @@ export const handleSendCarpoolMessage = async (data: {
         status: "sent",
       });
     }
+
+    // Send push notifications to carpool members
+    try {
+      await NotificationScheduler.scheduleMessageNotification(
+        data.carpoolId,
+        data.senderId,
+        data.message || 'Image',
+        data.senderId
+      );
+    } catch (notificationError) {
+      console.error("Error sending message notification:", notificationError);
+    }
+
   } catch (error) {
     console.error("Error handling carpool message:", error);
 

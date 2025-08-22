@@ -10,6 +10,7 @@ import app from "./app";
 
 import config from "./config";
 import { setupSocket } from "./socket/socket";
+import { initializeNotificationServices, cleanupNotificationServices } from "./config/notification.config";
 
 //uncaught exception
 process.on("uncaughtException", (error) => {
@@ -28,6 +29,10 @@ async function main() {
       typeof config.port === "number" ? config.port : Number(config.port);
     console.log(port, "port");
     await redisClient.connect();
+    
+    // Initialize notification services
+    await initializeNotificationServices();
+    
     server.listen(port, config.ip_address as string, () => {
       logger.info(
         colors.yellow(
@@ -64,6 +69,8 @@ if (process.env.NODE_ENV === 'production') {
     if (server) {
       server.close(async () => {
         logger.info("HTTP server closed.");
+        // Cleanup notification services
+        cleanupNotificationServices();
         // Close DB or Redis connections
         await redisClient.disconnect();
         await mongoose.connection.close();

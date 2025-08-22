@@ -7,6 +7,7 @@ import { CarpoolRoutes } from "../app/modules/carpool/carpool.route";
 import { ContactRoutes } from "../app/modules/contact/contact.route";
 import { CarpoolInvitationRoutes } from "../app/modules/carpoolInvitation/carpoolInvitation.route";
 import { CarpoolMessageRoutes } from "../app/modules/carpoolMessage/carpoolMessage.route";
+import { NotificationRoutes } from "../app/modules/notification/notification.route";
 
 const router: Router = express.Router();
 
@@ -41,6 +42,10 @@ const apiRoutes = [
   {
     path: "/carpool-invitation",
     route: CarpoolInvitationRoutes,
+  },
+  {
+    path: "/notifications",
+    route: NotificationRoutes,
   }
 ];
 apiRoutes.forEach((route) => router.use(route.path, route.route));

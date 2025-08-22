@@ -8,7 +8,6 @@ import helmet from "helmet";
 import { Morgan } from "./shared/morgen";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
-// import admin from 'firebase-admin';
 import config from "./config";
 
 const app: express.Application = express();
@@ -26,6 +25,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(compression());
 app.use(cookieParser());
