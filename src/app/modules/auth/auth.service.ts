@@ -20,7 +20,7 @@ import { TUser } from "../user/user.interface";
 import UserCacheManage from "../user/user.cacheManage";
 //login
 const loginUserFromDB = async (payload: Partial<TLoginData>) => {
-  const { email, password } = payload;
+  const { email, password, fcmToken } = payload;
   console.log(payload);
   if (!password) {
     throw new AppError(StatusCodes.BAD_REQUEST, "Password is required");
@@ -46,6 +46,12 @@ const loginUserFromDB = async (payload: Partial<TLoginData>) => {
     !(await User.isMatchPassword(password, isExistUser.password))
   ) {
     throw new AppError(StatusCodes.BAD_REQUEST, "Password is incorrect!");
+  }
+
+  // Update FCM token if provided
+  if (fcmToken) {
+    await User.findByIdAndUpdate(isExistUser._id, { fcmToken });
+    console.log(`FCM token updated for user ${email}: ${fcmToken}`);
   }
 
   //create token
@@ -308,6 +314,13 @@ const resendOtp = async (email: string) => {
   await User.findOneAndUpdate({ email }, { $set: { authentication } });
 };
 
+const logoutUser = async (userId: string) => {
+  // Remove FCM token on logout for security
+  await User.findByIdAndUpdate(userId, { $unset: { fcmToken: 1 } });
+  console.log(`User ${userId} logged out, FCM token removed`);
+  return { message: "Logged out successfully" };
+};
+
 export const AuthService = {
   verifyEmailToDB,
   loginUserFromDB,
@@ -316,4 +329,5 @@ export const AuthService = {
   changePasswordToDB,
   deleteAccountToDB,
   resendOtp,
+  logoutUser,
 };

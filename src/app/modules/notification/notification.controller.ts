@@ -20,7 +20,7 @@ const getNotifications = catchAsync(async (req: Request, res: Response) => {
     limit: limitNum,
     skip: skip,
   };
-
+ console.log(filters);
   const result = await NotificationService.getUserNotifications(filters);
 
   sendResponse(res, {

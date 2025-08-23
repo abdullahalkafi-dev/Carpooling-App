@@ -41,6 +41,21 @@ const setupSocket = (server: any) => {
       io.emit("onlineUsers", Array.from(users.keys()));
     });
 
+    socket.on("updateFcmToken", async (data) => {
+      const { userId, fcmToken } = data;
+      try {
+        if (userId && fcmToken) {
+          const { User } = await import("../app/modules/user/user.model");
+          await User.findByIdAndUpdate(userId, { fcmToken });
+          console.log(`FCM token updated for user ${userId} via socket: ${fcmToken}`);
+          socket.emit("fcmTokenUpdated", { success: true });
+        }
+      } catch (error) {
+        console.error("Error updating FCM token via socket:", error);
+        socket.emit("fcmTokenUpdated", { success: false, error: "Failed to update FCM token" });
+      }
+    });
+
     socket.on("activeChat", (data) => {
       console.log("activeChat", data);
       if (data.senderId) {

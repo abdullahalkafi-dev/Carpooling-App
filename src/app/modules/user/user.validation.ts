@@ -95,9 +95,18 @@ const updateUserRole = z.object({
     .strict(),
 });
 
+const updateFcmToken = z.object({
+  body: z
+    .object({
+      fcmToken: z.string({ required_error: "FCM token is required" }).trim(),
+    })
+    .strict(),
+});
+
 export const UserValidation = {
   createUser,
   updateUser,
   updateUserActivationStatus,
   updateUserRole,
+  updateFcmToken,
 };

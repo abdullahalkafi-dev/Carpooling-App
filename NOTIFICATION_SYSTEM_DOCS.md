@@ -226,6 +226,7 @@ Body:
 }
 ```
 
+
 ## Frontend Integration
 
 ### 1. Firebase Setup

@@ -57,6 +57,17 @@ export const handleSendCarpoolMessage = async (data: {
       if (member._id.toString() !== data.senderId.toString()) {
         let memberSocketId;
         users.forEach((socketIds, userId) => {
+          console.log(`
+            d
+            d
+            d
+            d`);
+          console.log(socketIds, userId);
+           console.log(`
+            d
+            d
+            d
+            d`);
           if (userId.toString() === member._id.toString()) {
             if (socketIds && socketIds.length > 0) {
               memberSocketId = socketIds[0];

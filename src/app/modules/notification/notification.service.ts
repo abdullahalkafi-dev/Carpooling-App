@@ -191,7 +191,13 @@ const getUserNotifications = async (filters: NotificationFilters): Promise<{
       ...query, 
       isRead: false 
     });
-
+ console.log(`
+  1
+  1
+  1
+  1
+  1`);
+  console.log(query);
     const notifications = await Notification.find(query)
       .populate('carpoolId', 'eventName startDate startTime')
       .sort({ createdAt: -1 })

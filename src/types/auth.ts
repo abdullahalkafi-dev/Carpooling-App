@@ -8,6 +8,7 @@ export type TLoginData = {
   password: string;
   phnNum: string;
   loginStatus?: string;
+  fcmToken?: string;
 };
 
 

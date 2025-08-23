@@ -8,16 +8,13 @@ import helmet from "helmet";
 import { Morgan } from "./shared/morgen";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
-import config from "./config";
 
 const app: express.Application = express();
 
 //morgan
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);
-// admin.initializeApp({
-//   credential: admin.credential.cert(config.firebase as admin.ServiceAccount),
-// });
+
 //body parser
 app.use(
   cors({
@@ -35,7 +32,7 @@ app.use(compression());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100000, // limit each IP to 100 requests per window
+  max: 100000, // limit each IP to 100000 requests per window
   standardHeaders: true,
   legacyHeaders: false,
 });

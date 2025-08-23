@@ -38,4 +38,9 @@ router.post(
   AuthController.changePassword
 );
 router.post("/send-otp", AuthController.resendOtp);
+router.post(
+  "/logout",
+  auth(USER_ROLES.USER, USER_ROLES.ADMIN),
+  AuthController.logoutUser
+);
 export const AuthRoutes: Router = router;

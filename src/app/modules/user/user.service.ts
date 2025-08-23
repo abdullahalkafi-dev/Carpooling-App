@@ -181,6 +181,23 @@ const getMe = async (
   return user;
 };
 
+const updateFcmToken = async (userId: string, fcmToken: string) => {
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { fcmToken },
+    { new: true }
+  );
+  
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User not found");
+  }
+  
+  // Update cache
+  await UserCacheManage.setCacheSingleUser(userId, user);
+  
+  return { fcmToken: user.fcmToken };
+};
+
 export const UserServices = {
   createUser,
   getAllUsers,
@@ -189,4 +206,5 @@ export const UserServices = {
   updateUserActivationStatus,
   updateUserRole,
   getMe,
+  updateFcmToken,
 };

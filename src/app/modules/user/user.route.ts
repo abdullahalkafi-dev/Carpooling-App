@@ -17,6 +17,12 @@ router.get("/", UserController.getAllUsers);
 router.get("/me", auth(),UserController.getMe);
 router.get("/:id", UserController.getUserById);
 router.patch(
+  "/fcm-token",
+  auth(),
+  validateRequest(UserValidation.updateFcmToken),
+  UserController.updateFcmToken
+);
+router.patch(
   "/:id", 
   fileUploadHandler,
   validateRequest(UserValidation.updateUser),

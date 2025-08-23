@@ -104,6 +104,19 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+//update FCM token
+const updateFcmToken = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const { fcmToken } = req.body;
+  const result = await UserServices.updateFcmToken(userId, fcmToken);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "FCM token updated successfully",
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getAllUsers,
@@ -112,4 +125,5 @@ export const UserController = {
   updateUserActivationStatus,
   updateUserRole,
   getMe,
+  updateFcmToken,
 };

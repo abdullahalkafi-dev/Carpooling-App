@@ -96,6 +96,18 @@ const resendOtp = catchAsync(async (req: Request, res: Response) => {
 }
 );
 
+const logoutUser = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  const result = await AuthService.logoutUser(userId);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: "Logged out successfully",
+    data: result,
+  });
+});
+
 export const AuthController = {
   verifyEmail,
   loginUser,
@@ -104,4 +116,5 @@ export const AuthController = {
   changePassword,
   deleteAccount,
   resendOtp,
+  logoutUser,
 };
