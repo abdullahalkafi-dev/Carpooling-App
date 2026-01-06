@@ -56,7 +56,10 @@ const processPendingNotifications = async (): Promise<void> => {
     const now = new Date();
     const pendingNotifications = await Notification.find({
       scheduledFor: { $lte: now },
-      sentAt: { $exists: false },
+      $or: [
+        { status: 'pending' },
+        { status: { $exists: false } }
+      ]
     }).populate("userId", "fcmToken");
 
     for (const notification of pendingNotifications) {
@@ -80,7 +83,9 @@ const sendScheduledNotification = async (notification: any): Promise<void> => {
     if (!user || !user.fcmToken) {
       await Notification.findByIdAndUpdate(notification._id, {
         sentAt: new Date(),
+        status: "failed",
       });
+      logger.warn(`Cannot send notification ${notification._id}: User ${notification.userId?._id || 'unknown'} has no FCM token`);
       return;
     }
 
@@ -120,7 +125,6 @@ const scheduleCarpoolReminders = async (): Promise<void> => {
         $gte: now,
         $lte: new Date(now.getTime() + 2 * 60 * 60 * 1000), // 2 hours from now
       },
-      status: "confirmed",
     }).populate("driver members", "firstName lastName fcmToken _id");
 
     for (const carpool of upcomingCarpools) {
@@ -133,7 +137,6 @@ const scheduleCarpoolReminders = async (): Promise<void> => {
         $gte: tomorrow,
         $lt: new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000),
       },
-      status: "confirmed",
     }).populate("driver members", "firstName lastName fcmToken _id");
 
     for (const carpool of tomorrowCarpools) {
@@ -168,6 +171,11 @@ const scheduleReminderForCarpool = async (carpool: any): Promise<void> => {
       ...(carpool.members || []),
       ...(carpool.driver ? [carpool.driver] : []),
     ];
+
+    if (participants.length === 0) {
+      logger.warn(`Carpool ${carpool._id} (${carpool.eventName}) has no participants. Skipping reminder scheduling.`);
+      return;
+    }
 
     for (const participant of participants) {
       const isDriver =
@@ -211,11 +219,14 @@ const scheduleAdvanceReminderForCarpool = async (
   carpool: any
 ): Promise<void> => {
   try {
-    const reminderTime = new Date();
-    reminderTime.setHours(20, 0, 0, 0); // 8 PM today for tomorrow's carpool
+    // Calculate 8 PM on the day before the carpool
+    const carpoolDate = new Date(carpool.startTime);
+    const reminderTime = new Date(carpoolDate);
+    reminderTime.setDate(carpoolDate.getDate() - 1); // Day before
+    reminderTime.setHours(20, 0, 0, 0); // 8 PM
 
     if (reminderTime <= new Date()) {
-      return; // Already past 8 PM
+      return; // Already past the reminder time
     }
 
     // Check if we already scheduled advance reminders
@@ -233,6 +244,11 @@ const scheduleAdvanceReminderForCarpool = async (
       ...(carpool.members || []),
       ...(carpool.driver ? [carpool.driver] : []),
     ];
+
+    if (participants.length === 0) {
+      logger.warn(`Carpool ${carpool._id} (${carpool.eventName}) has no participants. Skipping advance reminder scheduling.`);
+      return;
+    }
 
     for (const participant of participants) {
       await NotificationService.createNotification({

@@ -837,6 +837,212 @@ GET /api/health/scheduler
 - Set up alerts for FCM quota limits
 - Track user engagement with notification analytics
 
+## Timezone & Date Handling
+
+### Backend (Server-Side)
+
+#### How Dates are Stored
+All date fields in the Carpool model (`startTime`, `startDate`, `estimatedEndTime`, etc.) are stored as **JavaScript Date objects** in MongoDB, which are automatically converted to **UTC**.
+
+**MongoDB Storage Format**:
+```javascript
+// When you save: new Date('2026-01-10T14:30:00')
+// MongoDB stores: ISODate("2026-01-10T14:30:00.000Z")
+```
+
+#### Validation
+- Frontend sends date/time as **ISO 8601 strings** or custom format strings
+- Backend validates as strings (see `carpool.validation.ts`)
+- Mongoose automatically converts string dates to UTC Date objects when saving
+
+**Important**: The backend does NOT perform timezone conversion - it assumes dates sent from frontend are already in the correct timezone.
+
+### Frontend (Client-Side)
+
+#### Sending Dates to Backend
+
+**✅ Recommended Approach - Send ISO String with Timezone**:
+```javascript
+// User selects: "January 10, 2026, 2:30 PM" (in their local timezone)
+const userSelectedDate = new Date('2026-01-10T14:30:00'); // Local time
+const isoString = userSelectedDate.toISOString(); // Converts to UTC
+// Result: "2026-01-10T14:30:00.000Z" (if user is in UTC)
+// Result: "2026-01-10T19:30:00.000Z" (if user is in EST -5)
+
+// Send to backend
+fetch('/api/carpools', {
+  method: 'POST',
+  body: JSON.stringify({
+    startTime: isoString,
+    // ... other fields
+  })
+});
+```
+
+#### Receiving Dates from Backend
+
+When you fetch carpools, dates come back as **ISO strings in UTC**:
+
+```javascript
+// Response from backend
+{
+  "startTime": "2026-01-10T14:30:00.000Z",
+  "eventName": "School Pickup"
+}
+
+// Convert to user's local timezone for display
+const carpool = await response.json();
+const localDate = new Date(carpool.startTime); // Automatically converts to local
+console.log(localDate.toLocaleString()); // "1/10/2026, 9:30:00 AM" (if user in EST)
+```
+
+#### Display in UI
+
+**Option 1: Simple Local Display**:
+```javascript
+const displayTime = new Date(carpool.startTime).toLocaleString('en-US', {
+  dateStyle: 'medium',
+  timeStyle: 'short'
+});
+// Output: "Jan 10, 2026, 2:30 PM" (in user's timezone)
+```
+
+**Option 2: Using date-fns or moment.js**:
+```javascript
+import { format } from 'date-fns';
+
+const displayTime = format(new Date(carpool.startTime), 'MMM dd, yyyy h:mm a');
+// Output: "Jan 10, 2026 2:30 PM"
+```
+
+**Option 3: Show Specific Timezone**:
+```javascript
+const displayTime = new Date(carpool.startTime).toLocaleString('en-US', {
+  timeZone: 'America/New_York',
+  dateStyle: 'medium',
+  timeStyle: 'short'
+});
+// Output: "Jan 10, 2026, 9:30 AM" (EST time, regardless of user's timezone)
+```
+
+### Notification Reminders
+
+The notification scheduler calculates reminder times using JavaScript Date arithmetic:
+
+```typescript
+// 30 minutes before carpool
+const reminderTime = new Date(carpool.startTime.getTime() - 30 * 60 * 1000);
+
+// Day before at 8 PM
+const carpoolDate = new Date(carpool.startTime);
+const reminderTime = new Date(carpoolDate);
+reminderTime.setDate(carpoolDate.getDate() - 1);
+reminderTime.setHours(20, 0, 0, 0);
+```
+
+**Important**: These calculations are done in **server timezone** (typically UTC). Make sure:
+1. Server clock is synchronized (use NTP)
+2. Server timezone is set consistently (UTC recommended)
+3. All servers in cluster use same timezone
+
+### Best Practices
+
+#### For Frontend Developers
+
+1. **Always store user timezone**:
+```javascript
+const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+// Store in user preferences: "America/New_York", "Europe/London", etc.
+```
+
+2. **Send dates in ISO format**:
+```javascript
+// ✅ Good
+{ startTime: new Date('2026-01-10T14:30').toISOString() }
+
+// ❌ Bad - ambiguous
+{ startTime: '01/10/2026 2:30 PM' }
+```
+
+3. **Display dates in user's local timezone**:
+```javascript
+// ✅ Good
+new Date(startTime).toLocaleString()
+
+// ❌ Bad - shows UTC time
+startTime // Don't display raw ISO string
+```
+
+4. **Handle timezone changes**:
+```javascript
+// User traveling? Show both timezones
+const carpoolTime = new Date(carpool.startTime);
+const localTime = carpoolTime.toLocaleString('en-US', { timeZone: userTimezone });
+const carpoolLocation = 'America/New_York';
+const locationTime = carpoolTime.toLocaleString('en-US', { timeZone: carpoolLocation });
+
+console.log(`Your time: ${localTime}`);
+console.log(`Carpool time: ${locationTime}`);
+```
+
+#### For Backend Developers
+
+1. **Store in UTC**: Let Mongoose handle conversion
+2. **Never manipulate timezone on server**: Frontend handles display
+3. **Use UTC for all scheduling logic**
+4. **Log timezone in production**: `console.log(new Date().toString())` to verify server timezone
+
+### Example: Complete Flow
+
+**Scenario**: User in Los Angeles (PST, UTC-8) creates a carpool for 2:30 PM their time.
+
+```javascript
+// FRONTEND (Los Angeles, PST)
+// Step 1: User selects time in local timezone
+const userInput = '2026-01-10 14:30'; // 2:30 PM PST
+const localDate = new Date(userInput);
+
+// Step 2: Convert to ISO (automatically converts to UTC)
+const isoString = localDate.toISOString();
+// Result: "2026-01-10T22:30:00.000Z" (10 PM UTC = 2:30 PM PST)
+
+// Step 3: Send to backend
+POST /api/carpools
+{
+  "startTime": "2026-01-10T22:30:00.000Z",
+  ...
+}
+
+// BACKEND (Server in UTC)
+// Step 4: Mongoose saves as Date object
+startTime: ISODate("2026-01-10T22:30:00.000Z")
+
+// Step 5: Scheduler calculates reminder (30 min before)
+reminderTime: ISODate("2026-01-10T22:00:00.000Z") // 10 PM UTC
+
+// Step 6: At reminder time, send notification
+// FCM notification sent at exactly 10 PM UTC = 2 PM PST
+
+// FRONTEND (Receives notification)
+// Step 7: Display in user's local time
+"Your carpool starts in 30 minutes at 2:30 PM"
+```
+
+### Changes Required in Frontend
+
+**✅ No changes required if you're already:**
+- Sending dates as ISO strings (`toISOString()`)
+- Using `new Date()` to parse dates from API responses
+- Displaying with `.toLocaleString()` or date libraries
+
+**⚠️ Changes required if you're:**
+- Sending dates in custom string formats (like "23 Oct 2024, 14:38")
+  - **Solution**: Convert to ISO before sending
+- Displaying raw ISO strings to users
+  - **Solution**: Parse to Date and format for display
+- Hardcoding timezone conversions
+  - **Solution**: Let JavaScript handle it automatically
+
 ---
 
 **Note**: This documentation covers the functional-based notification system. All components have been converted from class-based to functional approach for better maintainability and consistency with the rest of the codebase.
