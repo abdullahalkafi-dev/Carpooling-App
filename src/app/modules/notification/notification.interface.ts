@@ -8,6 +8,7 @@ export interface INotification extends Document {
   carpoolId?: Types.ObjectId;
   isRead: boolean;
   sentAt?: Date;
+  status?: 'pending' | 'sent' | 'failed';
   scheduledFor: Date;
   data?: Record<string, any>;
   fcmTokens?: string[];

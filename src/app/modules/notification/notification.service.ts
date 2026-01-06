@@ -27,11 +27,19 @@ interface NotificationFilters {
 }
 
 // Create and schedule a notification
-const createNotification = async (notificationData: CreateNotificationData): Promise<INotification> => {
+const createNotification = async (notificationData: CreateNotificationData): Promise<INotification | null> => {
   try {
     const user = await User.findById(notificationData.userId);
     if (!user) {
-      throw new AppError(StatusCodes.NOT_FOUND, "User not found");
+      logger.warn(`User not found: ${notificationData.userId}`);
+      return null;
+    }
+
+    // Check user preferences before creating notification
+    const preferences = await NotificationPreference.findOne({ userId: notificationData.userId });
+    if (preferences && !preferences.pushNotifications) {
+      logger.info(`Skipping notification creation for user ${notificationData.userId}: Push notifications disabled`);
+      return null;
     }
 
     // Get user's FCM token
@@ -93,6 +101,7 @@ const sendImmediateNotification = async (
         type,
         scheduledFor: new Date(),
         sentAt: new Date(),
+        status: "sent",
         fcmTokens: [user.fcmToken],
         data,
       });
@@ -191,13 +200,7 @@ const getUserNotifications = async (filters: NotificationFilters): Promise<{
       ...query, 
       isRead: false 
     });
- console.log(`
-  1
-  1
-  1
-  1
-  1`);
-  console.log(query);
+
     const notifications = await Notification.find(query)
       .populate('carpoolId', 'eventName startDate startTime')
       .sort({ createdAt: -1 })
